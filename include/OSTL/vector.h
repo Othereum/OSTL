@@ -174,6 +174,7 @@ namespace ostl
 			pointer p = firstElemPtr_;
 			for (const value_type& a : x)
 				std::allocator_traits<Allocator>::construct(alloc_, p++, a);
+			return *this;
 		}
 		
 		vector& operator=(vector&& x)
@@ -189,6 +190,7 @@ namespace ostl
 			x.firstElemPtr_ = nullptr;
 			x.capacity_ = 0;
 			x.size_ = 0;
+			return *this;
 		}
 		
 		vector& operator=(std::initializer_list<T> init) {
@@ -199,6 +201,7 @@ namespace ostl
 			pointer p = firstElemPtr_;
 			for (auto it = init.begin(); it != init.end(); ++it)
 				std::allocator_traits<Allocator>::construct(alloc_, p++, *it);
+			return *this;
 		}
 
 		void assign(const size_type n, const T& t) {
