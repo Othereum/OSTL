@@ -24,7 +24,7 @@ namespace ostl
 		constexpr pointer operator->() const { return _Ptr; }
 		constexpr _VecConstIt& operator++() { ++_Ptr; return *this; }
 		constexpr _VecConstIt operator++(int) { _VecConstIt it = *this; ++_Ptr; return it; }
-		constexpr _VecConstIt& operator--() { --_Ptr; return *this }
+		constexpr _VecConstIt& operator--() { --_Ptr; return *this; }
 		constexpr _VecConstIt operator--(int) { _VecConstIt it = *this; --_Ptr; return it; }
 		constexpr _VecConstIt& operator+=(difference_type n) { _Ptr += n; return *this; }
 		constexpr _VecConstIt operator+(difference_type n) const { return _Ptr + n; }
@@ -254,13 +254,13 @@ namespace ostl
 		const_iterator          end() const noexcept { return firstElemPtr_ + size_; }
 		const_iterator          cend() const noexcept { return firstElemPtr_ + size_; }
 
-		reverse_iterator        rbegin() noexcept { return reverse_iterator{ firstElemPtr_ + size_ - 1 }; }
-		const_reverse_iterator  rbegin() const noexcept { return const_reverse_iterator{ firstElemPtr_ + size_ - 1 }; }
-		const_reverse_iterator  crbegin() const noexcept { return const_reverse_iterator{ firstElemPtr_ + size_ - 1 }; }
+		reverse_iterator        rbegin() noexcept { return reverse_iterator{ firstElemPtr_ + size_ }; }
+		const_reverse_iterator  rbegin() const noexcept { return const_reverse_iterator{ firstElemPtr_ + size_ }; }
+		const_reverse_iterator  crbegin() const noexcept { return const_reverse_iterator{ firstElemPtr_ + size_ }; }
 
-		reverse_iterator        rend() noexcept { return reverse_iterator{ firstElemPtr_ - 1 }; }
-		const_reverse_iterator  rend() const noexcept { return const_reverse_iterator{ firstElemPtr_ - 1 }; }
-		const_reverse_iterator  crend() const noexcept { return const_reverse_iterator{ firstElemPtr_ - 1 }; }
+		reverse_iterator        rend() noexcept { return reverse_iterator{ firstElemPtr_ }; }
+		const_reverse_iterator  rend() const noexcept { return const_reverse_iterator{ firstElemPtr_ }; }
+		const_reverse_iterator  crend() const noexcept { return const_reverse_iterator{ firstElemPtr_ }; }
 
 		[[nodiscard]] bool empty() const noexcept { return size_ == 0; }
 		size_type size() const noexcept { return size_; }
