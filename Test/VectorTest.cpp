@@ -2,8 +2,7 @@
 #include "OSTL/vector.h"
 
 template <typename T>
-void AssertAllEqual(const ostl::vector<T>& actual, std::initializer_list<T> expected)
-{
+void AssertAllEqual(const ostl::vector<T>& actual, std::initializer_list<T> expected) {
 	auto a = actual.begin();
 	auto e = expected.begin();
 	while (a != actual.end() && e != expected.end())
@@ -11,8 +10,7 @@ void AssertAllEqual(const ostl::vector<T>& actual, std::initializer_list<T> expe
 }
 
 template <typename T>
-void AssertAllEqual(const ostl::vector<T>& actual, const T& expected)
-{
+void AssertAllEqual(const ostl::vector<T>& actual, const T& expected) {
 	for (const T& value : actual)
 		ASSERT_EQ(value, expected);
 }
@@ -34,8 +32,37 @@ TEST(VectorTest, ConstructorTest) {
 	AssertAllEqual<std::string>(words4, "Mo");
 }
 
-TEST(VectorTest, InsertTest)
-{
+TEST(VectorTest, ReplaceTest) {
+	const auto list = { 3, 1, 4, 6, 5, 9 };
+	const auto expected_size = list.size();
+
+	ostl::vector<int> nums1(list);
+	ostl::vector<int> nums2;
+	ostl::vector<int> nums3;
+
+	ASSERT_EQ(nums1.size(), expected_size);
+	ASSERT_EQ(nums2.size(), 0);
+	ASSERT_EQ(nums3.size(), 0);
+	AssertAllEqual(nums1, list);
+	
+	nums2 = nums1;
+
+	ASSERT_EQ(nums1.size(), expected_size);
+	ASSERT_EQ(nums2.size(), expected_size);
+	ASSERT_EQ(nums3.size(), 0);
+	AssertAllEqual(nums1, list);
+	AssertAllEqual(nums2, list);
+
+	nums3 = std::move(nums1);
+
+	ASSERT_EQ(nums1.size(), 0);
+	ASSERT_EQ(nums2.size(), expected_size);
+	ASSERT_EQ(nums3.size(), expected_size);
+	AssertAllEqual(nums2, list);
+	AssertAllEqual(nums3, list);
+}
+
+TEST(VectorTest, InsertTest) {
 	constexpr size_t size = 3;
 	constexpr int val = 100;
 	ostl::vector<int> vec(size, val);
@@ -48,4 +75,3 @@ TEST(VectorTest, InsertTest)
 	AssertAllEqual(vec, { val2,val,val,val });
 	ASSERT_EQ(vec.size(), size + 1);
 }
-
