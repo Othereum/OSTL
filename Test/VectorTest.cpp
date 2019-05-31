@@ -95,6 +95,10 @@ TEST(Vector, Iterator) {
 	ASSERT_EQ(*(ints.crbegin() + 1), 8);
 	ASSERT_EQ(*(ints.crend() - 1), 1);
 	ASSERT_EQ(empty.rbegin(), empty.rend());
+
+	// emplace_back is used internal, but it's not implemented yet
+	// ostl::vector<int> revints(ints.crbegin(), ints.crend());
+	// AssertAllEqual(revints, { 16,8,4,2,1 });
 }
 
 TEST(Vector, Insert) {
