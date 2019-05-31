@@ -107,7 +107,7 @@ namespace ostl
 			:alloc_{ alloc }, firstElemPtr_{ alloc_.allocate(n) }, capacity_{ n }, size_{ n }
 		{
 			for (size_type i = 0; i < size_; ++i)
-				alloc_.construct(firstElemPtr_ + i);
+				std::allocator_traits<Allocator>::construct(alloc_, firstElemPtr_ + i);
 		}
 
 		template <class InputIt>
@@ -123,7 +123,7 @@ namespace ostl
 		{
 			pointer p = firstElemPtr_;
 			for (const value_type& a : x)
-				alloc_.construct(p++, a);
+				std::allocator_traits<Allocator>::construct(alloc_, p++, a);
 		}
 
 		vector(const vector& x, const Allocator& alloc)
@@ -131,7 +131,7 @@ namespace ostl
 		{
 			pointer p = firstElemPtr_;
 			for (const value_type& a : x)
-				alloc_.construct(p++, a);
+				std::allocator_traits<Allocator>::construct(alloc_, p++, a);
 		}
 
 		vector(vector&& x) noexcept
@@ -158,7 +158,7 @@ namespace ostl
 			size_ = s;
 			pointer p = firstElemPtr_;
 			for (auto it = init.begin(); it != init.end(); ++it)
-				alloc_.construct(p++, *it);
+				std::allocator_traits<Allocator>::construct(alloc_, p++, *it);
 		}
 
 		~vector() noexcept {
@@ -173,7 +173,7 @@ namespace ostl
 			size_ = x.size_;
 			pointer p = firstElemPtr_;
 			for (const value_type& a : x)
-				alloc_.construct(p++, a);
+				std::allocator_traits<Allocator>::construct(alloc_, p++, a);
 		}
 		
 		vector& operator=(vector&& x)
@@ -198,7 +198,7 @@ namespace ostl
 			size_ = s;
 			pointer p = firstElemPtr_;
 			for (auto it = init.begin(); it != init.end(); ++it)
-				alloc_.construct(p++, *it);
+				std::allocator_traits<Allocator>::construct(alloc_, p++, *it);
 		}
 
 		void assign(const size_type n, const T& t) {
@@ -206,7 +206,7 @@ namespace ostl
 			reserve(n);
 			size_ = n;
 			for (size_type i = 0; i < n; ++i)
-				alloc_.construct(firstElemPtr_ + i, t);
+				std::allocator_traits<Allocator>::construct(alloc_, firstElemPtr_ + i, t);
 		}
 
 		template <class InputIt>
@@ -223,7 +223,7 @@ namespace ostl
 			size_ = s;
 			pointer p = firstElemPtr_;
 			for (auto it = init.begin(); it != init.end(); ++it)
-				alloc_.construct(p++, *it);
+				std::allocator_traits<Allocator>::construct(alloc_, p++, *it);
 		}
 
 		allocator_type get_allocator() const noexcept { return alloc_; }
@@ -268,8 +268,8 @@ namespace ostl
 				const pointer p = alloc_.allocate(n);
 				if (firstElemPtr_) {
 					for (size_type i = 0; i < size_; ++i) {
-						alloc_.construct(p + i, std::move(firstElemPtr_[i]));
-						alloc_.destroy(firstElemPtr_ + i);
+						std::allocator_traits<Allocator>::construct(alloc_, p + i, std::move(firstElemPtr_[i]));
+						std::allocator_traits<Allocator>::destroy(alloc_, firstElemPtr_ + i);
 					}
 					alloc_.deallocate(firstElemPtr_, capacity_);
 				}
@@ -310,8 +310,7 @@ namespace ostl
 				std::allocator_traits<Allocator>::destroy(alloc_, src - i);
 			}
 			alloc_.deallocate(firstElemPtr_, capacity_);
-			if (firstElemPtr_ != dest - size_)
-			{
+			if (firstElemPtr_ != dest - size_) {
 				firstElemPtr_ = dest - size_;
 				capacity_ *= 2;
 			}
