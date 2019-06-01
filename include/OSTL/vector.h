@@ -389,7 +389,7 @@ namespace ostl
 		void move(pointer src, pointer dest, size_type count) {
 			static constexpr auto inc = [](pointer& p) {++p; };
 			static constexpr auto dec = [](pointer& p) {--p; };
-			const bool bOverlapped = src + count > dest;
+			const bool bOverlapped = src + count > dest && dest + count > src;
 			void(*op)(pointer&) = inc;
 			if (bOverlapped) {
 				op = dec;
