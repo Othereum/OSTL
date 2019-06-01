@@ -344,9 +344,7 @@ namespace ostl
 			return iterator{ new_elem };
 		}
 
-		iterator erase(const_iterator position) {
-
-		}
+		iterator erase(const_iterator position);
 		iterator erase(const_iterator first, const_iterator last);
 
 		void      resize(size_type sz);
@@ -376,29 +374,33 @@ namespace ostl
 			const size_type recommendedCap = new_capacity(minReqCap);
 			const pointer newMem = capacity_ < minReqCap ? alloc_.allocate(recommendedCap) : nullptr;
 
-			pointer src = firstElemPtr_ + size_ - 1;
-			pointer dest = (newMem ? newMem : firstElemPtr_) + size_ - 1 + count;
-			for (size_type moveCnt = size_ - position; moveCnt > 0; --moveCnt) {
-				std::allocator_traits<Allocator>::construct(alloc_, dest, std::move(*src));
-				std::allocator_traits<Allocator>::destroy(alloc_, src);
-				--src; --dest;
-			}
+			move(firstElemPtr_ + position, (newMem ? newMem : firstElemPtr_) + position + count, size_ - position);
 
 			if (newMem) {
-				src = firstElemPtr_;
-				dest = newMem;
-				for (size_type moveCnt = position; moveCnt > 0; --moveCnt) {
-					std::allocator_traits<Allocator>::construct(alloc_, dest, std::move(*src));
-					std::allocator_traits<Allocator>::destroy(alloc_, src);
-					++src; ++dest;
-				}
-
+				move(firstElemPtr_, newMem, position);
 				alloc_.deallocate(firstElemPtr_, capacity_);
 				firstElemPtr_ = newMem;
 				capacity_ = recommendedCap;
 			}
 
 			return firstElemPtr_ + position;
+		}
+
+		void move(pointer src, pointer dest, size_type count) {
+			static constexpr auto inc = [](pointer& p) {++p; };
+			static constexpr auto dec = [](pointer& p) {--p; };
+			const bool bOverlapped = src + count > dest;
+			void(*op)(pointer&) = inc;
+			if (bOverlapped) {
+				op = dec;
+				src += count - 1;
+				dest += count - 1;
+			}
+			while (count--) {
+				std::allocator_traits<Allocator>::construct(alloc_, dest, std::move(*src));
+				std::allocator_traits<Allocator>::destroy(alloc_, src);
+				op(src); op(dest);
+			}
 		}
 
 		size_type new_capacity(const size_type required) const {
