@@ -20,10 +20,8 @@ TEST(Vector, Constructor) {
 	ostl::vector<std::string> words1(init);
 	AssertAllEqual(words1, init);
 
-	/* emplace_back is used internal, but it's not implemented yet
 	ostl::vector<std::string> words2(words1.begin(), words1.end());
 	AssertAllEqual(words2, init);
-	*/
 
 	ostl::vector<std::string> words3(words1);
 	AssertAllEqual(words3, init);
@@ -96,9 +94,11 @@ TEST(Vector, Iterator) {
 	ASSERT_EQ(*(ints.crend() - 1), 1);
 	ASSERT_EQ(empty.rbegin(), empty.rend());
 
-	// emplace_back is used internal, but it's not implemented yet
-	// ostl::vector<int> revints(ints.crbegin(), ints.crend());
-	// AssertAllEqual(revints, { 16,8,4,2,1 });
+	const auto rb = ints.crbegin(), rb2 = rb;
+	ASSERT_EQ(rb, rb2);
+
+	ostl::vector<int> revints(ints.crbegin(), ints.crend());
+	AssertAllEqual(revints, { 16,8,4,2,1 });
 }
 
 TEST(Vector, Insert) {

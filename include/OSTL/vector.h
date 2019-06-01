@@ -16,8 +16,7 @@ namespace ostl
 		using _Tptr = typename V::pointer;
 
 		constexpr _VecConstIt() = default;
-		constexpr _VecConstIt(_Tptr Data) :_Ptr{ Data } {}
-		constexpr operator pointer() const { return _Ptr; }
+		constexpr explicit _VecConstIt(_Tptr Data) :_Ptr{ Data } {}
 
 		constexpr reference operator*() const { return *_Ptr; }
 		constexpr reference operator[](difference_type n) const { return *(_Ptr + n); }
@@ -27,9 +26,9 @@ namespace ostl
 		constexpr _VecConstIt& operator--() { --_Ptr; return *this; }
 		constexpr _VecConstIt operator--(int) { _VecConstIt it = *this; --_Ptr; return it; }
 		constexpr _VecConstIt& operator+=(difference_type n) { _Ptr += n; return *this; }
-		constexpr _VecConstIt operator+(difference_type n) const { return _Ptr + n; }
+		constexpr _VecConstIt operator+(difference_type n) const { return _VecConstIt{ _Ptr + n }; }
 		constexpr _VecConstIt& operator-=(difference_type n) { _Ptr -= n; return *this; }
-		constexpr _VecConstIt operator-(difference_type n) const { return _Ptr - n; }
+		constexpr _VecConstIt operator-(difference_type n) const { return _VecConstIt{ _Ptr - n }; }
 		constexpr difference_type operator-(const _VecConstIt& rhs) const { return _Ptr - rhs._Ptr; }
 		constexpr bool operator==(const _VecConstIt& rhs) const { return _Ptr == rhs._Ptr; }
 		constexpr bool operator!=(const _VecConstIt& rhs) const { return _Ptr != rhs._Ptr; }
@@ -53,8 +52,7 @@ namespace ostl
 		using pointer = typename V::pointer;
 
 		constexpr _VecIt() = default;
-		constexpr _VecIt(pointer Data) :_VecConstIt<V>{ Data } {}
-		constexpr operator pointer() const { return _Ptr; }
+		constexpr explicit _VecIt(pointer Data) :_VecConstIt<V>{ Data } {}
 
 		constexpr reference operator*() const { return *_Ptr; }
 		constexpr reference operator[](difference_type n) const { return *(_Ptr + n); }
@@ -64,9 +62,9 @@ namespace ostl
 		constexpr _VecIt& operator--() { --_Ptr; return *this }
 		constexpr _VecIt operator--(int) { _VecIt it = *this; --_Ptr; return it; }
 		constexpr _VecIt& operator+=(difference_type n) { _Ptr += n; return *this; }
-		constexpr _VecIt operator+(difference_type n) const { return _Ptr + n; }
+		constexpr _VecIt operator+(difference_type n) const { return _VecIt{ _Ptr + n }; }
 		constexpr _VecIt& operator-=(difference_type n) { _Ptr -= n; return *this; }
-		constexpr _VecIt operator-(difference_type n) const { return _Ptr - n; }
+		constexpr _VecIt operator-(difference_type n) const { return _VecIt{ _Ptr - n }; }
 		constexpr difference_type operator-(const _VecIt& rhs) const { return _Ptr - rhs._Ptr; }
 		constexpr bool operator==(const _VecIt& rhs) const { return _Ptr == rhs._Ptr; }
 		constexpr bool operator!=(const _VecIt& rhs) const { return _Ptr != rhs._Ptr; }
@@ -246,21 +244,21 @@ namespace ostl
 		pointer data() noexcept { return const_cast<pointer>(static_cast<const vector&>(*this).data()); }
 		const_pointer data() const noexcept { return firstElemPtr_; }
 
-		iterator                begin() noexcept { return firstElemPtr_; }
-		const_iterator          begin() const noexcept { return firstElemPtr_; }
-		const_iterator          cbegin() const noexcept { return firstElemPtr_; }
+		iterator                begin() noexcept { return iterator{ firstElemPtr_ }; }
+		const_iterator          begin() const noexcept { return const_iterator{ firstElemPtr_ }; }
+		const_iterator          cbegin() const noexcept { return const_iterator{ firstElemPtr_ }; }
 
-		iterator                end() noexcept { return firstElemPtr_ + size_; }
-		const_iterator          end() const noexcept { return firstElemPtr_ + size_; }
-		const_iterator          cend() const noexcept { return firstElemPtr_ + size_; }
+		iterator                end() noexcept { return iterator{ firstElemPtr_ + size_ }; }
+		const_iterator          end() const noexcept { return const_iterator{ firstElemPtr_ + size_ }; }
+		const_iterator          cend() const noexcept { return const_iterator{ firstElemPtr_ + size_ }; }
 
-		reverse_iterator        rbegin() noexcept { return reverse_iterator{ firstElemPtr_ + size_ }; }
-		const_reverse_iterator  rbegin() const noexcept { return const_reverse_iterator{ firstElemPtr_ + size_ }; }
-		const_reverse_iterator  crbegin() const noexcept { return const_reverse_iterator{ firstElemPtr_ + size_ }; }
+		reverse_iterator        rbegin() noexcept { return reverse_iterator{ end() }; }
+		const_reverse_iterator  rbegin() const noexcept { return const_reverse_iterator{ end() }; }
+		const_reverse_iterator  crbegin() const noexcept { return const_reverse_iterator{ cend() }; }
 
-		reverse_iterator        rend() noexcept { return reverse_iterator{ firstElemPtr_ }; }
-		const_reverse_iterator  rend() const noexcept { return const_reverse_iterator{ firstElemPtr_ }; }
-		const_reverse_iterator  crend() const noexcept { return const_reverse_iterator{ firstElemPtr_ }; }
+		reverse_iterator        rend() noexcept { return reverse_iterator{ begin() }; }
+		const_reverse_iterator  rend() const noexcept { return const_reverse_iterator{ begin() }; }
+		const_reverse_iterator  crend() const noexcept { return const_reverse_iterator{ cbegin() }; }
 
 		[[nodiscard]] bool empty() const noexcept { return size_ == 0; }
 		size_type size() const noexcept { return size_; }
@@ -305,37 +303,27 @@ namespace ostl
 				std::allocator_traits<Allocator>::destroy(alloc_, firstElemPtr_ + i);
 			size_ = 0;
 		}
-		iterator insert(const_iterator position, const T& x) {
-			const pointer src = firstElemPtr_ + size_ - 1, dest = (size_ + 1 > capacity_ ? alloc_.allocate(capacity_ * 2) : firstElemPtr_) + size_;
-			const size_type moveCnt = end() - position, newElemOffset = position - begin();
-			for (size_type i = 0; i < moveCnt; ++i) {
-				std::allocator_traits<Allocator>::construct(alloc_, dest - i, std::move(*(src - i)));
-				std::allocator_traits<Allocator>::destroy(alloc_, src - i);
-			}
-			alloc_.deallocate(firstElemPtr_, capacity_);
-			if (firstElemPtr_ != dest - size_) {
-				firstElemPtr_ = dest - size_;
-				capacity_ *= 2;
-			}
-			const pointer new_elem = firstElemPtr_ + newElemOffset;
-			std::allocator_traits<Allocator>::construct(alloc_, new_elem, x);
-			++size_;
-			return new_elem;
-		}
-		iterator insert(const_iterator pos, T&& x);
-		iterator insert(const_iterator pos, size_type n, const T& x);
+		iterator insert(const_iterator position, const T& x) { return emplace(position, x); }
+		iterator insert(const_iterator position, T&& x) { return emplace(position, std::move(x)); }
+		iterator insert(const_iterator position, size_type n, const T& x);
 		template <class InputIt>
-		iterator insert(const_iterator pos, InputIt first,
+		iterator insert(const_iterator position, InputIt first,
 			InputIt last);
-		iterator insert(const_iterator pos, std::initializer_list<T>);
+		iterator insert(const_iterator position, std::initializer_list<T>);
 		void      resize(size_type sz);
 		void      resize(size_type sz, const T& c);
-		template <class... Args> void emplace_back(Args&& ... args);
+		template <class... Args> void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }
 		void push_back(const T& x);
 		void push_back(T&& x);
 		void pop_back();
 
-		template <class... Args> iterator emplace(const_iterator position, Args&& ... args);
+		template <class... Args>
+		iterator emplace(const_iterator position, Args&& ... args) {
+			const pointer new_elem = shift(position - begin(), 1);
+			std::allocator_traits<Allocator>::construct(alloc_, new_elem, std::forward<Args>(args)...);
+			++size_;
+			return iterator{ new_elem };
+		}
 
 		iterator erase(const_iterator position);
 		iterator erase(const_iterator first, const_iterator last);
@@ -346,6 +334,49 @@ namespace ostl
 		pointer firstElemPtr_ = nullptr;
 		size_type capacity_ = 0;
 		size_type size_ = 0;
+
+		pointer shift(const size_type position, const size_type count) {
+			if (capacity_ == 0) {
+				capacity_ = new_capacity(count);
+				firstElemPtr_ = alloc_.allocate(capacity_);
+				return firstElemPtr_;
+			}
+
+			const size_type minReqCap = size_ + count;
+			const size_type recommendedCap = new_capacity(minReqCap);
+			const pointer newMem = capacity_ < minReqCap ? alloc_.allocate(recommendedCap) : nullptr;
+
+			pointer src = firstElemPtr_ + size_ - 1;
+			pointer dest = (newMem ? newMem : firstElemPtr_) + size_ - 1 + count;
+			for (size_type moveCnt = size_ - position; moveCnt > 0; --moveCnt) {
+				std::allocator_traits<Allocator>::construct(alloc_, dest, std::move(*src));
+				std::allocator_traits<Allocator>::destroy(alloc_, src);
+				--src; --dest;
+			}
+
+			if (newMem) {
+				src = firstElemPtr_;
+				dest = newMem;
+				for (size_type moveCnt = position; moveCnt > 0; --moveCnt) {
+					std::allocator_traits<Allocator>::construct(alloc_, dest, std::move(*src));
+					std::allocator_traits<Allocator>::destroy(alloc_, src);
+					++src; ++dest;
+				}
+
+				alloc_.deallocate(firstElemPtr_, capacity_);
+				firstElemPtr_ = newMem;
+				capacity_ = recommendedCap;
+			}
+
+			return firstElemPtr_ + position;
+		}
+
+		size_type new_capacity(const size_type required) const {
+			size_type new_cap = capacity_ == 0 && required != 0 ? 1 : capacity_;
+			while (new_cap < required)
+				new_cap *= 2;
+			return new_cap;
+		}
 	};
 }
 
