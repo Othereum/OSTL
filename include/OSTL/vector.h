@@ -265,60 +265,77 @@ namespace ostl
 		[[nodiscard]] bool empty() const noexcept { return size_ == 0; }
 		size_type size() const noexcept { return size_; }
 		size_type max_size() const noexcept { return std::numeric_limits<difference_type>::max(); }
-		void      reserve(const size_type n) {
+
+		void reserve(const size_type n) {
 			if (n > max_size()) throw std::length_error{ "" };
-			if (n > capacity_) {
-				const pointer p = alloc_.allocate(n);
-				if (firstElemPtr_) {
-					for (size_type i = 0; i < size_; ++i) {
-						std::allocator_traits<Allocator>::construct(alloc_, p + i, std::move(firstElemPtr_[i]));
-						std::allocator_traits<Allocator>::destroy(alloc_, firstElemPtr_ + i);
-					}
-					alloc_.deallocate(firstElemPtr_, capacity_);
+			if (n <= capacity_) return;
+
+			const pointer p = alloc_.allocate(n);
+			if (firstElemPtr_) {
+				for (size_type i = 0; i < size_; ++i) {
+					std::allocator_traits<Allocator>::construct(alloc_, p + i, std::move(firstElemPtr_[i]));
+					std::allocator_traits<Allocator>::destroy(alloc_, firstElemPtr_ + i);
 				}
-				firstElemPtr_ = p;
-				capacity_ = n;
+				alloc_.deallocate(firstElemPtr_, capacity_);
 			}
+			firstElemPtr_ = p;
+			capacity_ = n;
 		}
+
 		size_type capacity() const noexcept { return capacity_; }
-		void      shrink_to_fit() {
-			if (size_ < capacity_) {
-				if (size_ == 0) {
-					alloc_.deallocate(firstElemPtr_, capacity_);
-					firstElemPtr_ = nullptr;
-					capacity_ = 0;
-				} else {
-					const pointer n = alloc_.allocate(size_);
-					for (size_type i = 0; i < size_; ++i) {
-						std::allocator_traits<Allocator>::construct(alloc_, n + i, std::move(firstElemPtr_[i]));
-						std::allocator_traits<Allocator>::destroy(alloc_, firstElemPtr_ + i);
-					}
-					alloc_.deallocate(firstElemPtr_, capacity_);
-					firstElemPtr_ = n;
-					capacity_ = size_;
+
+		void shrink_to_fit() {
+			if (size_ == capacity_) return;
+
+			if (size_ == 0) {
+				alloc_.deallocate(firstElemPtr_, capacity_);
+				firstElemPtr_ = nullptr;
+				capacity_ = 0;
+			} else {
+				const pointer n = alloc_.allocate(size_);
+				for (size_type i = 0; i < size_; ++i) {
+					std::allocator_traits<Allocator>::construct(alloc_, n + i, std::move(firstElemPtr_[i]));
+					std::allocator_traits<Allocator>::destroy(alloc_, firstElemPtr_ + i);
 				}
+				alloc_.deallocate(firstElemPtr_, capacity_);
+				firstElemPtr_ = n;
+				capacity_ = size_;
 			}
 		}
 
-		void     clear() noexcept {
+		void clear() noexcept {
 			for (size_type i = 0; i < size_; ++i)
 				std::allocator_traits<Allocator>::destroy(alloc_, firstElemPtr_ + i);
 			size_ = 0;
 		}
+
 		iterator insert(const_iterator position, const T& x) { return emplace(position, x); }
 		iterator insert(const_iterator position, T&& x) { return emplace(position, std::move(x)); }
 		iterator insert(const_iterator position, size_type n, const T& x) {
-			const pointer it = shift(position - begin(), n);
+			const pointer it = shift(position - cbegin(), n);
 			for (size_type i = 0; i < n; ++i)
 				std::allocator_traits<Allocator>::construct(alloc_, it + i, x);
 			size_ += n;
 			return iterator{ it };
 		}
+
 		template <class InputIt, class = std::enable_if_t<
 			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
 			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
-		iterator insert(const_iterator position, InputIt first, InputIt last);
-		iterator insert(const_iterator position, std::initializer_list<T>);
+		iterator insert(const_iterator position, InputIt first, InputIt last) {
+			const difference_type offset = position-- - cbegin();
+			while (first != last) position = emplace(++position, *first++);
+			return begin() + offset;
+		}
+
+		iterator insert(const_iterator position, std::initializer_list<T> list) {
+			const pointer first = shift(position - cbegin(), list.size());
+			pointer it = first;
+			for (const T& x : list)
+				std::allocator_traits<Allocator>::construct(alloc_, it++, x);
+			return iterator{ first };
+		}
+
 		void      resize(size_type sz);
 		void      resize(size_type sz, const T& c);
 		template <class... Args> void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }

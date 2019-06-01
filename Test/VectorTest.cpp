@@ -114,4 +114,17 @@ TEST(Vector, Insert) {
 	vec.insert(it, 2, 300);
 	AssertAllEqual(vec, { 300,300,200,100,100,100 });
 	ASSERT_EQ(vec.size(), 6);
+
+	it = vec.begin();
+
+	ostl::vector<int> vec2(2, 400);
+	vec.insert(it + 2, vec2.begin(), vec2.end());
+	AssertAllEqual(vec, { 300,300,400,400,200,100,100,100 });
+
+	int arr[] = { 501,502,503 };
+	vec.insert(vec.begin(), arr, arr + 3);
+	AssertAllEqual(vec, { 501,502,503,300,300,400,400,200,100,100,100 });
+
+	vec.insert(vec.end(), { 6,9,7,4 });
+	AssertAllEqual(vec, { 501,502,503,300,300,400,400,200,100,100,100,6,9,7,4 });
 }
