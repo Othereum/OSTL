@@ -15,27 +15,27 @@ namespace ostl
 		using pointer = typename V::const_pointer;
 		using _Tptr = typename V::pointer;
 
-		constexpr _VecConstIt() = default;
-		constexpr explicit _VecConstIt(_Tptr Data) :_Ptr{ Data } {}
+		_VecConstIt() = default;
+		explicit _VecConstIt(_Tptr Data) :_Ptr{ Data } {}
 
-		constexpr reference operator*() const { return *_Ptr; }
-		constexpr reference operator[](difference_type n) const { return *(_Ptr + n); }
-		constexpr pointer operator->() const { return _Ptr; }
-		constexpr _VecConstIt& operator++() { ++_Ptr; return *this; }
-		constexpr _VecConstIt operator++(int) { _VecConstIt it = *this; ++_Ptr; return it; }
-		constexpr _VecConstIt& operator--() { --_Ptr; return *this; }
-		constexpr _VecConstIt operator--(int) { _VecConstIt it = *this; --_Ptr; return it; }
-		constexpr _VecConstIt& operator+=(difference_type n) { _Ptr += n; return *this; }
-		constexpr _VecConstIt operator+(difference_type n) const { return _VecConstIt{ _Ptr + n }; }
-		constexpr _VecConstIt& operator-=(difference_type n) { _Ptr -= n; return *this; }
-		constexpr _VecConstIt operator-(difference_type n) const { return _VecConstIt{ _Ptr - n }; }
-		constexpr difference_type operator-(const _VecConstIt& rhs) const { return _Ptr - rhs._Ptr; }
-		constexpr bool operator==(const _VecConstIt& rhs) const { return _Ptr == rhs._Ptr; }
-		constexpr bool operator!=(const _VecConstIt& rhs) const { return _Ptr != rhs._Ptr; }
-		constexpr bool operator<(const _VecConstIt& rhs) const { return _Ptr < rhs._Ptr; }
-		constexpr bool operator>(const _VecConstIt& rhs) const { return _Ptr > rhs._Ptr; }
-		constexpr bool operator>=(const _VecConstIt& rhs) const { return _Ptr >= rhs._Ptr; }
-		constexpr bool operator<=(const _VecConstIt& rhs) const { return _Ptr <= rhs._Ptr; }
+		reference operator*() const { return *_Ptr; }
+		reference operator[](difference_type n) const { return *(_Ptr + n); }
+		pointer operator->() const { return _Ptr; }
+		_VecConstIt& operator++() { ++_Ptr; return *this; }
+		_VecConstIt operator++(int) { _VecConstIt it = *this; ++_Ptr; return it; }
+		_VecConstIt& operator--() { --_Ptr; return *this; }
+		_VecConstIt operator--(int) { _VecConstIt it = *this; --_Ptr; return it; }
+		_VecConstIt& operator+=(difference_type n) { _Ptr += n; return *this; }
+		_VecConstIt operator+(difference_type n) const { return _VecConstIt{ _Ptr + n }; }
+		_VecConstIt& operator-=(difference_type n) { _Ptr -= n; return *this; }
+		_VecConstIt operator-(difference_type n) const { return _VecConstIt{ _Ptr - n }; }
+		difference_type operator-(const _VecConstIt& rhs) const { return _Ptr - rhs._Ptr; }
+		bool operator==(const _VecConstIt& rhs) const { return _Ptr == rhs._Ptr; }
+		bool operator!=(const _VecConstIt& rhs) const { return _Ptr != rhs._Ptr; }
+		bool operator<(const _VecConstIt& rhs) const { return _Ptr < rhs._Ptr; }
+		bool operator>(const _VecConstIt& rhs) const { return _Ptr > rhs._Ptr; }
+		bool operator>=(const _VecConstIt& rhs) const { return _Ptr >= rhs._Ptr; }
+		bool operator<=(const _VecConstIt& rhs) const { return _Ptr <= rhs._Ptr; }
 
 	protected:
 		_Tptr _Ptr = nullptr;
@@ -51,27 +51,27 @@ namespace ostl
 		using reference = typename V::reference;
 		using pointer = typename V::pointer;
 
-		constexpr _VecIt() = default;
-		constexpr explicit _VecIt(pointer Data) :_VecConstIt<V>{ Data } {}
+		_VecIt() = default;
+		explicit _VecIt(pointer Data) :_VecConstIt<V>{ Data } {}
 
-		constexpr reference operator*() const { return *_Ptr; }
-		constexpr reference operator[](difference_type n) const { return *(_Ptr + n); }
-		constexpr pointer operator->() const { return _Ptr; }
-		constexpr _VecIt& operator++() { ++_Ptr; return *this; }
-		constexpr _VecIt operator++(int) { _VecIt it = *this; ++_Ptr; return it; }
-		constexpr _VecIt& operator--() { --_Ptr; return *this }
-		constexpr _VecIt operator--(int) { _VecIt it = *this; --_Ptr; return it; }
-		constexpr _VecIt& operator+=(difference_type n) { _Ptr += n; return *this; }
-		constexpr _VecIt operator+(difference_type n) const { return _VecIt{ _Ptr + n }; }
-		constexpr _VecIt& operator-=(difference_type n) { _Ptr -= n; return *this; }
-		constexpr _VecIt operator-(difference_type n) const { return _VecIt{ _Ptr - n }; }
-		constexpr difference_type operator-(const _VecIt& rhs) const { return _Ptr - rhs._Ptr; }
-		constexpr bool operator==(const _VecIt& rhs) const { return _Ptr == rhs._Ptr; }
-		constexpr bool operator!=(const _VecIt& rhs) const { return _Ptr != rhs._Ptr; }
-		constexpr bool operator<(const _VecIt& rhs) const { return _Ptr < rhs._Ptr; }
-		constexpr bool operator>(const _VecIt& rhs) const { return _Ptr > rhs._Ptr; }
-		constexpr bool operator>=(const _VecIt& rhs) const { return _Ptr >= rhs._Ptr; }
-		constexpr bool operator<=(const _VecIt& rhs) const { return _Ptr <= rhs._Ptr; }
+		reference operator*() const { return *_Ptr; }
+		reference operator[](difference_type n) const { return *(_Ptr + n); }
+		pointer operator->() const { return _Ptr; }
+		_VecIt& operator++() { ++_Ptr; return *this; }
+		_VecIt operator++(int) { _VecIt it = *this; ++_Ptr; return it; }
+		_VecIt& operator--() { --_Ptr; return *this }
+		_VecIt operator--(int) { _VecIt it = *this; --_Ptr; return it; }
+		_VecIt& operator+=(difference_type n) { _Ptr += n; return *this; }
+		_VecIt operator+(difference_type n) const { return _VecIt{ _Ptr + n }; }
+		_VecIt& operator-=(difference_type n) { _Ptr -= n; return *this; }
+		_VecIt operator-(difference_type n) const { return _VecIt{ _Ptr - n }; }
+		difference_type operator-(const _VecIt& rhs) const { return _Ptr - rhs._Ptr; }
+		bool operator==(const _VecIt& rhs) const { return _Ptr == rhs._Ptr; }
+		bool operator!=(const _VecIt& rhs) const { return _Ptr != rhs._Ptr; }
+		bool operator<(const _VecIt& rhs) const { return _Ptr < rhs._Ptr; }
+		bool operator>(const _VecIt& rhs) const { return _Ptr > rhs._Ptr; }
+		bool operator>=(const _VecIt& rhs) const { return _Ptr >= rhs._Ptr; }
+		bool operator<=(const _VecIt& rhs) const { return _Ptr <= rhs._Ptr; }
 	};
 
 	template <class T, class Allocator = std::allocator<T> >
@@ -336,13 +336,6 @@ namespace ostl
 			return iterator{ first };
 		}
 
-		void      resize(size_type sz);
-		void      resize(size_type sz, const T& c);
-		template <class... Args> void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }
-		void push_back(const T& x);
-		void push_back(T&& x);
-		void pop_back();
-
 		template <class... Args>
 		iterator emplace(const_iterator position, Args&& ... args) {
 			const pointer new_elem = shift(position - begin(), 1);
@@ -351,8 +344,19 @@ namespace ostl
 			return iterator{ new_elem };
 		}
 
-		iterator erase(const_iterator position);
+		iterator erase(const_iterator position) {
+
+		}
 		iterator erase(const_iterator first, const_iterator last);
+
+		void      resize(size_type sz);
+		void      resize(size_type sz, const T& c);
+		template <class... Args> void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }
+		void push_back(const T& x);
+		void push_back(T&& x);
+		void pop_back();
+
+
 		void     swap(vector<T, Allocator>&);
 
 	private:
