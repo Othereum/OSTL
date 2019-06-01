@@ -102,15 +102,16 @@ TEST(Vector, Iterator) {
 }
 
 TEST(Vector, Insert) {
-	constexpr size_t size = 3;
-	constexpr int val = 100;
-	ostl::vector<int> vec(size, val);
-	AssertAllEqual(vec, val);
-	ASSERT_EQ(vec.size(), size);
+	ostl::vector<int> vec(3, 100);
+	AssertAllEqual(vec, 100);
+	ASSERT_EQ(vec.size(), 3);
 
 	auto it = vec.begin();
-	constexpr int val2 = 200;
-	it = vec.insert(it, val2);
-	AssertAllEqual(vec, { val2,val,val,val });
-	ASSERT_EQ(vec.size(), size + 1);
+	it = vec.insert(it, 200);
+	AssertAllEqual(vec, { 200,100,100,100 });
+	ASSERT_EQ(vec.size(), 4);
+
+	vec.insert(it, 2, 300);
+	AssertAllEqual(vec, { 300,300,200,100,100,100 });
+	ASSERT_EQ(vec.size(), 6);
 }
