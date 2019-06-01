@@ -108,7 +108,9 @@ namespace ostl
 				std::allocator_traits<Allocator>::construct(alloc_, firstElemPtr_ + i);
 		}
 
-		template <class InputIt, class = std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> || std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>>>
+		template <class InputIt, class = std::enable_if_t<
+			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
+			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
 		vector(InputIt first, InputIt last, const Allocator& alloc = Allocator{})
 			: alloc_{ alloc }
 		{
@@ -312,7 +314,9 @@ namespace ostl
 			size_ += n;
 			return iterator{ it };
 		}
-		template <class InputIt, class = std::enable_if_t<std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> || std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>>>
+		template <class InputIt, class = std::enable_if_t<
+			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
+			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
 		iterator insert(const_iterator position, InputIt first, InputIt last);
 		iterator insert(const_iterator position, std::initializer_list<T>);
 		void      resize(size_type sz);
