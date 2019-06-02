@@ -17,6 +17,7 @@ namespace ostl
 
 		_VecConstIt() = default;
 		explicit _VecConstIt(_Tptr Data) :_Ptr{ Data } {}
+		explicit operator pointer() const { return _Ptr; }
 
 		reference operator*() const { return *_Ptr; }
 		reference operator[](difference_type n) const { return *(_Ptr + n); }
@@ -53,6 +54,7 @@ namespace ostl
 
 		_VecIt() = default;
 		explicit _VecIt(pointer Data) :_VecConstIt<V>{ Data } {}
+		explicit operator pointer() const { return _Ptr; }
 
 		reference operator*() const { return *_Ptr; }
 		reference operator[](difference_type n) const { return *(_Ptr + n); }
@@ -344,7 +346,13 @@ namespace ostl
 			return iterator{ new_elem };
 		}
 
-		iterator erase(const_iterator position);
+		iterator erase(const_iterator position) {
+			const pointer p = const_cast<pointer>(const_pointer{ position });
+			std::allocator_traits<Allocator>::destroy(alloc_, p);
+			move(p + 1, p, size_ - (p - firstElemPtr_) - 1);
+			--size_;
+			return iterator{ p };
+		}
 		iterator erase(const_iterator first, const_iterator last);
 
 		void      resize(size_type sz);
@@ -389,9 +397,8 @@ namespace ostl
 		void move(pointer src, pointer dest, size_type count) {
 			static constexpr auto inc = [](pointer& p) {++p; };
 			static constexpr auto dec = [](pointer& p) {--p; };
-			const bool bOverlapped = src + count > dest && dest + count > src;
 			void(*op)(pointer&) = inc;
-			if (bOverlapped) {
+			if (src < dest) {
 				op = dec;
 				src += count - 1;
 				dest += count - 1;

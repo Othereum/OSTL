@@ -128,3 +128,12 @@ TEST(Vector, Insert) {
 	vec.insert(vec.end(), { 6,9,7,4 });
 	AssertAllEqual(vec, { 501,502,503,300,300,400,400,200,100,100,100,6,9,7,4 });
 }
+
+TEST(Vector, Erase) {
+	ostl::vector<int> c{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+	AssertAllEqual(c, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+
+	c.erase(c.begin());
+
+	AssertAllEqual(c, { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+}
