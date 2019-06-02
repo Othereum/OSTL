@@ -144,3 +144,15 @@ TEST(Vector, Erase) {
 		else ++it;
 	AssertAllEqual(c, { 1,7,9 });
 }
+
+TEST(Vector, PushBack) {
+	using namespace std::string_literals;
+
+	ostl::vector<std::string> numbers;
+	numbers.push_back("abc");
+	std::string s = "def";
+	numbers.push_back(std::move(s));
+
+	AssertAllEqual(numbers, { "abc"s, "def"s });
+	ASSERT_EQ(s, ""s);
+}

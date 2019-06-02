@@ -1,6 +1,7 @@
 #include <initializer_list>
 #include <iterator>
 #include <limits>
+#include <memory>
 
 namespace ostl
 {
@@ -367,11 +368,12 @@ namespace ostl
 			return iterator{ f };
 		}
 
-		void      resize(size_type sz);
+		void push_back(const T& x) { emplace_back(x); }
+		void push_back(T&& x) { emplace_back(std::move(x)); }
+
+		void resize(size_type sz);
 		void      resize(size_type sz, const T& c);
 		template <class... Args> void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }
-		void push_back(const T& x);
-		void push_back(T&& x);
 		void pop_back();
 
 
@@ -385,13 +387,13 @@ namespace ostl
 
 		pointer shift(const size_type position, const size_type count) {
 			if (capacity_ == 0) {
-				capacity_ = new_capacity(count);
+				capacity_ = new_cap(count);
 				firstElemPtr_ = alloc_.allocate(capacity_);
 				return firstElemPtr_;
 			}
 
 			const size_type minReqCap = size_ + count;
-			const size_type recommendedCap = new_capacity(minReqCap);
+			const size_type recommendedCap = new_cap(minReqCap);
 			const pointer newMem = capacity_ < minReqCap ? alloc_.allocate(recommendedCap) : nullptr;
 
 			move(firstElemPtr_ + position, (newMem ? newMem : firstElemPtr_) + position + count, size_ - position);
@@ -423,11 +425,11 @@ namespace ostl
 			}
 		}
 
-		size_type new_capacity(const size_type required) const {
-			size_type new_cap = capacity_ == 0 && required != 0 ? 1 : capacity_;
-			while (new_cap < required)
-				new_cap *= 2;
-			return new_cap;
+		size_type new_cap(const size_type required) const {
+			size_type newCap = capacity_ == 0 && required != 0 ? 1 : capacity_;
+			while (newCap < required)
+				newCap *= 2;
+			return newCap;
 		}
 	};
 }
