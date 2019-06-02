@@ -353,7 +353,19 @@ namespace ostl
 			--size_;
 			return iterator{ p };
 		}
-		iterator erase(const_iterator first, const_iterator last);
+
+		iterator erase(const_iterator first, const_iterator last) {
+			const pointer f = const_cast<pointer>(const_pointer{ first });
+			const pointer l = const_cast<pointer>(const_pointer{ last });
+
+			for (pointer it = f; it != l; ++it)
+				std::allocator_traits<Allocator>::destroy(alloc_, it);
+
+			move(l, f, size_ - (l - firstElemPtr_));
+			size_ -= l - f;
+
+			return iterator{ f };
+		}
 
 		void      resize(size_type sz);
 		void      resize(size_type sz, const T& c);
@@ -395,6 +407,7 @@ namespace ostl
 		}
 
 		void move(pointer src, pointer dest, size_type count) {
+			if (src == dest || count == 0) return;
 			static constexpr auto inc = [](pointer& p) {++p; };
 			static constexpr auto dec = [](pointer& p) {--p; };
 			void(*op)(pointer&) = inc;

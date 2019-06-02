@@ -134,6 +134,13 @@ TEST(Vector, Erase) {
 	AssertAllEqual(c, { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 });
 
 	c.erase(c.begin());
-
 	AssertAllEqual(c, { 1, 2, 3, 4, 5, 6, 7, 8, 9 });
+
+	c.erase(c.begin() + 2, c.begin() + 5);
+	AssertAllEqual(c, { 1,2,6,7,8,9 });
+
+	for (auto it = c.begin(); it != c.end();)
+		if (*it % 2 == 0) it = c.erase(it);
+		else ++it;
+	AssertAllEqual(c, { 1,7,9 });
 }
