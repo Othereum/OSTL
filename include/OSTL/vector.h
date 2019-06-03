@@ -1,102 +1,85 @@
-#include <algorithm>
 #include <initializer_list>
-#include <iterator>
-#include <limits>
-#include <memory>
 
-namespace ostl
-{
-	template <class V>
-	class _VecConstIt
-	{
-	public:
-		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename V::value_type;
-		using difference_type = typename V::difference_type;
-		using reference = typename V::const_reference;
-		using pointer = typename V::const_pointer;
-		using _Tptr = typename V::pointer;
-
-		_VecConstIt() = default;
-		explicit _VecConstIt(_Tptr Data) :_Ptr{ Data } {}
-		explicit operator pointer() const { return _Ptr; }
-
-		reference operator*() const { return *_Ptr; }
-		reference operator[](difference_type n) const { return *(_Ptr + n); }
-		pointer operator->() const { return _Ptr; }
-		_VecConstIt& operator++() { ++_Ptr; return *this; }
-		_VecConstIt operator++(int) { _VecConstIt it = *this; ++_Ptr; return it; }
-		_VecConstIt& operator--() { --_Ptr; return *this; }
-		_VecConstIt operator--(int) { _VecConstIt it = *this; --_Ptr; return it; }
-		_VecConstIt& operator+=(difference_type n) { _Ptr += n; return *this; }
-		_VecConstIt operator+(difference_type n) const { return _VecConstIt{ _Ptr + n }; }
-		_VecConstIt& operator-=(difference_type n) { _Ptr -= n; return *this; }
-		_VecConstIt operator-(difference_type n) const { return _VecConstIt{ _Ptr - n }; }
-		difference_type operator-(const _VecConstIt& rhs) const { return _Ptr - rhs._Ptr; }
-		bool operator==(const _VecConstIt& rhs) const { return _Ptr == rhs._Ptr; }
-		bool operator!=(const _VecConstIt& rhs) const { return _Ptr != rhs._Ptr; }
-		bool operator<(const _VecConstIt& rhs) const { return _Ptr < rhs._Ptr; }
-		bool operator>(const _VecConstIt& rhs) const { return _Ptr > rhs._Ptr; }
-		bool operator>=(const _VecConstIt& rhs) const { return _Ptr >= rhs._Ptr; }
-		bool operator<=(const _VecConstIt& rhs) const { return _Ptr <= rhs._Ptr; }
-
-	protected:
-		_Tptr _Ptr = nullptr;
-	};
-
-	template <class V>
-	_VecConstIt<V> operator+(typename _VecConstIt<V>::difference_type n, _VecConstIt<V> it) {
-		return it + n;
-	}
-
-	template <class V>
-	class _VecIt : public _VecConstIt<V>
-	{
-	public:
-		using iterator_category = std::random_access_iterator_tag;
-		using value_type = typename V::value_type;
-		using difference_type = typename V::difference_type;
-		using reference = typename V::reference;
-		using pointer = typename V::pointer;
-
-		_VecIt() = default;
-		explicit _VecIt(pointer Data) :_VecConstIt<V>{ Data } {}
-		explicit operator pointer() const { return _Ptr; }
-
-		reference operator*() const { return *_Ptr; }
-		reference operator[](difference_type n) const { return *(_Ptr + n); }
-		pointer operator->() const { return _Ptr; }
-		_VecIt& operator++() { ++_Ptr; return *this; }
-		_VecIt operator++(int) { _VecIt it = *this; ++_Ptr; return it; }
-		_VecIt& operator--() { --_Ptr; return *this }
-		_VecIt operator--(int) { _VecIt it = *this; --_Ptr; return it; }
-		_VecIt& operator+=(difference_type n) { _Ptr += n; return *this; }
-		_VecIt operator+(difference_type n) const { return _VecIt{ _Ptr + n }; }
-		_VecIt& operator-=(difference_type n) { _Ptr -= n; return *this; }
-		_VecIt operator-(difference_type n) const { return _VecIt{ _Ptr - n }; }
-		difference_type operator-(const _VecIt& rhs) const { return _Ptr - rhs._Ptr; }
-		bool operator==(const _VecIt& rhs) const { return _Ptr == rhs._Ptr; }
-		bool operator!=(const _VecIt& rhs) const { return _Ptr != rhs._Ptr; }
-		bool operator<(const _VecIt& rhs) const { return _Ptr < rhs._Ptr; }
-		bool operator>(const _VecIt& rhs) const { return _Ptr > rhs._Ptr; }
-		bool operator>=(const _VecIt& rhs) const { return _Ptr >= rhs._Ptr; }
-		bool operator<=(const _VecIt& rhs) const { return _Ptr <= rhs._Ptr; }
-	};
-
-	template <class T, class Alloc = std::allocator<T> >
-	class vector
-	{
+namespace ostl {
+	template <class T, class Alloc = std::allocator<T>>
+	class vector {
 	public:
 		using value_type = T;
 		using allocator_type = Alloc;
-		using size_type = std::size_t;
-		using difference_type = std::ptrdiff_t;
-		using reference = value_type &;
-		using const_reference = const value_type &;
-		using pointer = typename std::allocator_traits<allocator_type>::pointer;
-		using const_pointer = typename std::allocator_traits<allocator_type>::const_pointer;
-		using iterator = _VecIt<vector>;
-		using const_iterator = _VecConstIt<vector>;
+		using size_type = size_t;
+		using difference_type = ptrdiff_t;
+		using reference = T &;
+		using const_reference = const T &;
+		using pointer = typename std::allocator_traits<Alloc>::pointer;
+		using const_pointer = typename std::allocator_traits<Alloc>::const_pointer;
+
+		class const_iterator {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = value_type;
+			using difference_type = difference_type;
+			using pointer = pointer;
+			using reference = reference;
+
+			const_iterator() = default;
+			explicit const_iterator(pointer Data) :_Ptr{ Data } {}
+			explicit operator pointer() const { return _Ptr; }
+
+			reference operator*() const { return *_Ptr; }
+			reference operator[](difference_type n) const { return *(_Ptr + n); }
+			pointer operator->() const { return _Ptr; }
+			const_iterator& operator++() { ++_Ptr; return *this; }
+			const_iterator operator++(int) { const_iterator it = *this; ++_Ptr; return it; }
+			const_iterator& operator--() { --_Ptr; return *this; }
+			const_iterator operator--(int) { const_iterator it = *this; --_Ptr; return it; }
+			const_iterator& operator+=(difference_type n) { _Ptr += n; return *this; }
+			const_iterator operator+(difference_type n) const { return const_iterator{ _Ptr + n }; }
+			const_iterator& operator-=(difference_type n) { _Ptr -= n; return *this; }
+			const_iterator operator-(difference_type n) const { return const_iterator{ _Ptr - n }; }
+			difference_type operator-(const const_iterator& rhs) const { return _Ptr - rhs._Ptr; }
+			bool operator==(const const_iterator& rhs) const { return _Ptr == rhs._Ptr; }
+			bool operator!=(const const_iterator& rhs) const { return _Ptr != rhs._Ptr; }
+			bool operator<(const const_iterator& rhs) const { return _Ptr < rhs._Ptr; }
+			bool operator>(const const_iterator& rhs) const { return _Ptr > rhs._Ptr; }
+			bool operator>=(const const_iterator& rhs) const { return _Ptr >= rhs._Ptr; }
+			bool operator<=(const const_iterator& rhs) const { return _Ptr <= rhs._Ptr; }
+
+		protected:
+			pointer _Ptr = nullptr;
+		};
+
+		class iterator : public const_iterator {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = value_type;
+			using difference_type = difference_type;
+			using pointer = pointer;
+			using reference = reference;
+
+			iterator() = default;
+			explicit iterator(pointer Data) :const_iterator{ Data } {}
+			explicit operator pointer() const { return _Ptr; }
+
+			reference operator*() const { return *_Ptr; }
+			reference operator[](difference_type n) const { return *(_Ptr + n); }
+			pointer operator->() const { return _Ptr; }
+			iterator& operator++() { ++_Ptr; return *this; }
+			iterator operator++(int) { iterator it = *this; ++_Ptr; return it; }
+			iterator& operator--() { --_Ptr; return *this }
+			iterator operator--(int) { iterator it = *this; --_Ptr; return it; }
+			iterator& operator+=(difference_type n) { _Ptr += n; return *this; }
+			iterator operator+(difference_type n) const { return iterator{ _Ptr + n }; }
+			iterator& operator-=(difference_type n) { _Ptr -= n; return *this; }
+			iterator operator-(difference_type n) const { return iterator{ _Ptr - n }; }
+			difference_type operator-(const iterator& rhs) const { return _Ptr - rhs._Ptr; }
+			bool operator==(const iterator& rhs) const { return _Ptr == rhs._Ptr; }
+			bool operator!=(const iterator& rhs) const { return _Ptr != rhs._Ptr; }
+			bool operator<(const iterator& rhs) const { return _Ptr < rhs._Ptr; }
+			bool operator>(const iterator& rhs) const { return _Ptr > rhs._Ptr; }
+			bool operator>=(const iterator& rhs) const { return _Ptr >= rhs._Ptr; }
+			bool operator<=(const iterator& rhs) const { return _Ptr <= rhs._Ptr; }
+		};
+
 		using reverse_iterator = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
@@ -479,6 +462,16 @@ namespace ostl
 			return newCap;
 		}
 	};
+
+	template <class T, class Alloc>
+	typename vector<T, Alloc>::const_iterator operator+
+		(typename vector<T, Alloc>::difference_type n, typename vector<T, Alloc>::const_iterator it)
+	{ return it + n; }
+
+	template <class T, class Alloc>
+	typename vector<T, Alloc>::iterator operator+
+		(typename vector<T, Alloc>::difference_type n, typename vector<T, Alloc>::iterator it)
+	{ return it + n; }
 
 	namespace pmr {
 		template <class T>
