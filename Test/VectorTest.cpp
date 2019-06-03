@@ -3,6 +3,7 @@
 
 template <typename T>
 void AssertAllEqual(const ostl::vector<T>& actual, std::initializer_list<T> expected) {
+	ASSERT_EQ(actual.size(), expected.size());
 	auto a = actual.begin();
 	auto e = expected.begin();
 	while (a != actual.end() && e != expected.end())
@@ -104,16 +105,13 @@ TEST(Vector, Iterator) {
 TEST(Vector, Insert) {
 	ostl::vector<int> vec(3, 100);
 	AssertAllEqual(vec, 100);
-	ASSERT_EQ(vec.size(), 3);
 
 	auto it = vec.begin();
 	it = vec.insert(it, 200);
 	AssertAllEqual(vec, { 200,100,100,100 });
-	ASSERT_EQ(vec.size(), 4);
 
 	vec.insert(it, 2, 300);
 	AssertAllEqual(vec, { 300,300,200,100,100,100 });
-	ASSERT_EQ(vec.size(), 6);
 
 	it = vec.begin();
 
@@ -145,14 +143,18 @@ TEST(Vector, Erase) {
 	AssertAllEqual(c, { 1,7,9 });
 }
 
-TEST(Vector, PushBack) {
+TEST(Vector, PushPopEmplaceBack) {
 	using namespace std::string_literals;
 
 	ostl::vector<std::string> numbers;
 	numbers.push_back("abc");
 	std::string s = "def";
 	numbers.push_back(std::move(s));
+	numbers.emplace_back(3, 'A');
 
-	AssertAllEqual(numbers, { "abc"s, "def"s });
+	AssertAllEqual(numbers, { "abc"s, "def"s, "AAA"s });
 	ASSERT_EQ(s, ""s);
+
+	numbers.pop_back();
+	AssertAllEqual(numbers, { "abc"s, "def"s });
 }

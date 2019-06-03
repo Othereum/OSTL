@@ -336,6 +336,7 @@ namespace ostl
 			pointer it = first;
 			for (const T& x : list)
 				std::allocator_traits<Allocator>::construct(alloc_, it++, x);
+			size_ += list.size();
 			return iterator{ first };
 		}
 
@@ -371,10 +372,13 @@ namespace ostl
 		void push_back(const T& x) { emplace_back(x); }
 		void push_back(T&& x) { emplace_back(std::move(x)); }
 
+		template <class... Args>
+		void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }
+
+		void pop_back() { erase(cend() - 1); }
+
 		void resize(size_type sz);
 		void      resize(size_type sz, const T& c);
-		template <class... Args> void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }
-		void pop_back();
 
 
 		void     swap(vector<T, Allocator>&);
