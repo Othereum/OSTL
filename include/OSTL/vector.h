@@ -18,31 +18,31 @@ namespace ostl {
 			using iterator_category = std::random_access_iterator_tag;
 			using value_type = value_type;
 			using difference_type = difference_type;
-			using pointer = pointer;
-			using reference = reference;
+			using pointer = const_pointer;
+			using reference = const_reference;
 
 			const_iterator() = default;
 			explicit const_iterator(pointer Data) :_Ptr{ Data } {}
-			explicit operator pointer() const { return _Ptr; }
+			[[nodiscard]] explicit operator pointer() const { return _Ptr; }
 
-			reference operator*() const { return *_Ptr; }
-			reference operator[](difference_type n) const { return *(_Ptr + n); }
-			pointer operator->() const { return _Ptr; }
+			[[nodiscard]] reference operator*() const { return *_Ptr; }
+			[[nodiscard]] reference operator[](difference_type n) const { return *(_Ptr + n); }
+			[[nodiscard]] pointer operator->() const { return _Ptr; }
 			const_iterator& operator++() { ++_Ptr; return *this; }
 			const_iterator operator++(int) { const_iterator it = *this; ++_Ptr; return it; }
 			const_iterator& operator--() { --_Ptr; return *this; }
 			const_iterator operator--(int) { const_iterator it = *this; --_Ptr; return it; }
 			const_iterator& operator+=(difference_type n) { _Ptr += n; return *this; }
-			const_iterator operator+(difference_type n) const { return const_iterator{ _Ptr + n }; }
+			[[nodiscard]] const_iterator operator+(difference_type n) const { return const_iterator{ _Ptr + n }; }
 			const_iterator& operator-=(difference_type n) { _Ptr -= n; return *this; }
-			const_iterator operator-(difference_type n) const { return const_iterator{ _Ptr - n }; }
-			difference_type operator-(const const_iterator& rhs) const { return _Ptr - rhs._Ptr; }
-			bool operator==(const const_iterator& rhs) const { return _Ptr == rhs._Ptr; }
-			bool operator!=(const const_iterator& rhs) const { return _Ptr != rhs._Ptr; }
-			bool operator<(const const_iterator& rhs) const { return _Ptr < rhs._Ptr; }
-			bool operator>(const const_iterator& rhs) const { return _Ptr > rhs._Ptr; }
-			bool operator>=(const const_iterator& rhs) const { return _Ptr >= rhs._Ptr; }
-			bool operator<=(const const_iterator& rhs) const { return _Ptr <= rhs._Ptr; }
+			[[nodiscard]] const_iterator operator-(difference_type n) const { return const_iterator{ _Ptr - n }; }
+			[[nodiscard]] difference_type operator-(const const_iterator& rhs) const { return _Ptr - rhs._Ptr; }
+			[[nodiscard]] bool operator==(const const_iterator& rhs) const { return _Ptr == rhs._Ptr; }
+			[[nodiscard]] bool operator!=(const const_iterator& rhs) const { return _Ptr != rhs._Ptr; }
+			[[nodiscard]] bool operator<(const const_iterator& rhs) const { return _Ptr < rhs._Ptr; }
+			[[nodiscard]] bool operator>(const const_iterator& rhs) const { return _Ptr > rhs._Ptr; }
+			[[nodiscard]] bool operator>=(const const_iterator& rhs) const { return _Ptr >= rhs._Ptr; }
+			[[nodiscard]] bool operator<=(const const_iterator& rhs) const { return _Ptr <= rhs._Ptr; }
 
 		protected:
 			pointer _Ptr = nullptr;
@@ -58,26 +58,26 @@ namespace ostl {
 
 			iterator() = default;
 			explicit iterator(pointer Data) :const_iterator{ Data } {}
-			explicit operator pointer() const { return _Ptr; }
+			[[nodiscard]] explicit operator pointer() const { return _Ptr; }
 
-			reference operator*() const { return *_Ptr; }
-			reference operator[](difference_type n) const { return *(_Ptr + n); }
-			pointer operator->() const { return _Ptr; }
+			[[nodiscard]] reference operator*() const { return *_Ptr; }
+			[[nodiscard]] reference operator[](difference_type n) const { return *(_Ptr + n); }
+			[[nodiscard]] pointer operator->() const { return _Ptr; }
 			iterator& operator++() { ++_Ptr; return *this; }
 			iterator operator++(int) { iterator it = *this; ++_Ptr; return it; }
 			iterator& operator--() { --_Ptr; return *this }
 			iterator operator--(int) { iterator it = *this; --_Ptr; return it; }
 			iterator& operator+=(difference_type n) { _Ptr += n; return *this; }
-			iterator operator+(difference_type n) const { return iterator{ _Ptr + n }; }
+			[[nodiscard]] iterator operator+(difference_type n) const { return iterator{ _Ptr + n }; }
 			iterator& operator-=(difference_type n) { _Ptr -= n; return *this; }
-			iterator operator-(difference_type n) const { return iterator{ _Ptr - n }; }
-			difference_type operator-(const iterator& rhs) const { return _Ptr - rhs._Ptr; }
-			bool operator==(const iterator& rhs) const { return _Ptr == rhs._Ptr; }
-			bool operator!=(const iterator& rhs) const { return _Ptr != rhs._Ptr; }
-			bool operator<(const iterator& rhs) const { return _Ptr < rhs._Ptr; }
-			bool operator>(const iterator& rhs) const { return _Ptr > rhs._Ptr; }
-			bool operator>=(const iterator& rhs) const { return _Ptr >= rhs._Ptr; }
-			bool operator<=(const iterator& rhs) const { return _Ptr <= rhs._Ptr; }
+			[[nodiscard]] iterator operator-(difference_type n) const { return iterator{ _Ptr - n }; }
+			[[nodiscard]] difference_type operator-(const iterator& rhs) const { return _Ptr - rhs._Ptr; }
+			[[nodiscard]] bool operator==(const iterator& rhs) const { return _Ptr == rhs._Ptr; }
+			[[nodiscard]] bool operator!=(const iterator& rhs) const { return _Ptr != rhs._Ptr; }
+			[[nodiscard]] bool operator<(const iterator& rhs) const { return _Ptr < rhs._Ptr; }
+			[[nodiscard]] bool operator>(const iterator& rhs) const { return _Ptr > rhs._Ptr; }
+			[[nodiscard]] bool operator>=(const iterator& rhs) const { return _Ptr >= rhs._Ptr; }
+			[[nodiscard]] bool operator<=(const iterator& rhs) const { return _Ptr <= rhs._Ptr; }
 		};
 
 		using reverse_iterator = std::reverse_iterator<iterator>;
@@ -225,42 +225,42 @@ namespace ostl {
 				std::allocator_traits<Alloc>::construct(alloc_, p++, *it);
 		}
 
-		allocator_type get_allocator() const noexcept { return alloc_; }
+		[[nodiscard]] allocator_type get_allocator() const noexcept { return alloc_; }
 
-		reference       at(size_type n) { return const_cast<reference>(static_cast<const vector&>(*this).at(n)); }
-		const_reference at(size_type n) const {
+		[[nodiscard]] reference       at(size_type n) { return const_cast<reference>(static_cast<const vector&>(*this).at(n)); }
+		[[nodiscard]] const_reference at(size_type n) const {
 			if (n >= size_) throw std::out_of_range{ "" };
 			return firstElemPtr_[n];
 		}
-		reference       operator[](size_type n) { return const_cast<reference>(static_cast<const vector&>(*this)[n]); }
-		const_reference operator[](size_type n) const { return firstElemPtr_[n]; }
-		reference       front() { return const_cast<reference>(static_cast<const vector&>(*this).front()); }
-		const_reference front() const { return *firstElemPtr_; }
-		reference       back() { return const_cast<reference>(static_cast<const vector&>(*this).back()); }
-		const_reference back() const { return firstElemPtr_[size_ - 1]; }
+		[[nodiscard]] reference       operator[](size_type n) { return const_cast<reference>(static_cast<const vector&>(*this)[n]); }
+		[[nodiscard]] const_reference operator[](size_type n) const { return firstElemPtr_[n]; }
+		[[nodiscard]] reference       front() { return const_cast<reference>(static_cast<const vector&>(*this).front()); }
+		[[nodiscard]] const_reference front() const { return *firstElemPtr_; }
+		[[nodiscard]] reference       back() { return const_cast<reference>(static_cast<const vector&>(*this).back()); }
+		[[nodiscard]] const_reference back() const { return firstElemPtr_[size_ - 1]; }
 
-		pointer data() noexcept { return const_cast<pointer>(static_cast<const vector&>(*this).data()); }
-		const_pointer data() const noexcept { return firstElemPtr_; }
+		[[nodiscard]] pointer data() noexcept { return const_cast<pointer>(static_cast<const vector&>(*this).data()); }
+		[[nodiscard]] const_pointer data() const noexcept { return firstElemPtr_; }
 
-		iterator                begin() noexcept { return iterator{ firstElemPtr_ }; }
-		const_iterator          begin() const noexcept { return const_iterator{ firstElemPtr_ }; }
-		const_iterator          cbegin() const noexcept { return const_iterator{ firstElemPtr_ }; }
+		[[nodiscard]] iterator                begin() noexcept { return iterator{ firstElemPtr_ }; }
+		[[nodiscard]] const_iterator          begin() const noexcept { return const_iterator{ firstElemPtr_ }; }
+		[[nodiscard]] const_iterator          cbegin() const noexcept { return const_iterator{ firstElemPtr_ }; }
 
-		iterator                end() noexcept { return iterator{ firstElemPtr_ + size_ }; }
-		const_iterator          end() const noexcept { return const_iterator{ firstElemPtr_ + size_ }; }
-		const_iterator          cend() const noexcept { return const_iterator{ firstElemPtr_ + size_ }; }
+		[[nodiscard]] iterator                end() noexcept { return iterator{ firstElemPtr_ + size_ }; }
+		[[nodiscard]] const_iterator          end() const noexcept { return const_iterator{ firstElemPtr_ + size_ }; }
+		[[nodiscard]] const_iterator          cend() const noexcept { return const_iterator{ firstElemPtr_ + size_ }; }
 
-		reverse_iterator        rbegin() noexcept { return reverse_iterator{ end() }; }
-		const_reverse_iterator  rbegin() const noexcept { return const_reverse_iterator{ end() }; }
-		const_reverse_iterator  crbegin() const noexcept { return const_reverse_iterator{ cend() }; }
+		[[nodiscard]] reverse_iterator        rbegin() noexcept { return reverse_iterator{ end() }; }
+		[[nodiscard]] const_reverse_iterator  rbegin() const noexcept { return const_reverse_iterator{ end() }; }
+		[[nodiscard]] const_reverse_iterator  crbegin() const noexcept { return const_reverse_iterator{ cend() }; }
 
-		reverse_iterator        rend() noexcept { return reverse_iterator{ begin() }; }
-		const_reverse_iterator  rend() const noexcept { return const_reverse_iterator{ begin() }; }
-		const_reverse_iterator  crend() const noexcept { return const_reverse_iterator{ cbegin() }; }
+		[[nodiscard]] reverse_iterator        rend() noexcept { return reverse_iterator{ begin() }; }
+		[[nodiscard]] const_reverse_iterator  rend() const noexcept { return const_reverse_iterator{ begin() }; }
+		[[nodiscard]] const_reverse_iterator  crend() const noexcept { return const_reverse_iterator{ cbegin() }; }
 
 		[[nodiscard]] bool empty() const noexcept { return size_ == 0; }
-		size_type size() const noexcept { return size_; }
-		size_type max_size() const noexcept { return std::numeric_limits<difference_type>::max(); }
+		[[nodiscard]] size_type size() const noexcept { return size_; }
+		[[nodiscard]] size_type max_size() const noexcept { return std::numeric_limits<difference_type>::max(); }
 
 		void reserve(const size_type n) {
 			if (n > max_size()) throw std::length_error{ "" };
@@ -278,7 +278,7 @@ namespace ostl {
 			capacity_ = n;
 		}
 
-		size_type capacity() const noexcept { return capacity_; }
+		[[nodiscard]] size_type capacity() const noexcept { return capacity_; }
 
 		void shrink_to_fit() {
 			if (size_ == capacity_) return;
@@ -455,7 +455,7 @@ namespace ostl {
 			}
 		}
 
-		size_type new_cap(const size_type required) const {
+		[[nodiscard]] size_type new_cap(const size_type required) const {
 			size_type newCap = std::max<size_type>(1, capacity_);
 			while (newCap < required)
 				newCap = std::max<size_type>(2, newCap * 3 / 2);
@@ -464,12 +464,12 @@ namespace ostl {
 	};
 
 	template <class T, class Alloc>
-	typename vector<T, Alloc>::const_iterator operator+
+	[[nodiscard]] typename vector<T, Alloc>::const_iterator operator+
 		(typename vector<T, Alloc>::difference_type n, typename vector<T, Alloc>::const_iterator it)
 	{ return it + n; }
 
 	template <class T, class Alloc>
-	typename vector<T, Alloc>::iterator operator+
+	[[nodiscard]] typename vector<T, Alloc>::iterator operator+
 		(typename vector<T, Alloc>::difference_type n, typename vector<T, Alloc>::iterator it)
 	{ return it + n; }
 
@@ -479,7 +479,7 @@ namespace ostl {
 	}
 
 	template <class T, class Alloc>
-	bool operator==(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+	[[nodiscard]] bool operator==(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
 		if (lhs.size() != rhs.size()) return false;
 		const auto end = lhs.end();
 		for (auto l = lhs.begin(), r = rhs.begin(); l != end;)
@@ -488,27 +488,27 @@ namespace ostl {
 	}
 
 	template <class T, class Alloc>
-	bool operator!=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+	[[nodiscard]] bool operator!=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
 		return !(lhs == rhs);
 	}
 
 	template <class T, class Alloc>
-	bool operator<(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+	[[nodiscard]] bool operator<(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
 		return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
 	}
 
 	template <class T, class Alloc>
-	bool operator<=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+	[[nodiscard]] bool operator<=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
 		return lhs < rhs || lhs == rhs;
 	}
 
 	template <class T, class Alloc>
-	bool operator>(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+	[[nodiscard]] bool operator>(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
 		return !(lhs <= rhs);
 	}
 
 	template <class T, class Alloc>
-	bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
+	[[nodiscard]] bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
 		return !(lhs < rhs);
 	}
 
