@@ -90,7 +90,7 @@ TEST(Vector, Iterator) {
 	const auto rb = ints.crbegin(), rb2 = rb;
 	ASSERT_EQ(rb, rb2);
 
-	ostl::vector<int> revints(ints.crbegin(), ints.crend());
+	ostl::vector revints(ints.crbegin(), ints.crend());
 	AssertAllEqual(revints, { 16,8,4,2,1 });
 }
 
