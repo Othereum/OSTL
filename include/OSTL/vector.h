@@ -513,4 +513,9 @@ namespace ostl
 	bool operator>=(const vector<T, Alloc>& lhs, const vector<T, Alloc>& rhs) {
 		return !(lhs < rhs);
 	}
+
+	namespace pmr {
+		template <class T>
+		using vector = ::ostl::vector<T, ::std::pmr::polymorphic_allocator<T>>;
+	}
 }
