@@ -123,6 +123,7 @@ namespace ostl
 		vector(InputIt first, InputIt last, const Alloc& alloc = Alloc{})
 			: alloc_{ alloc }
 		{
+			reserve(std::distance(first, last));
 			for (InputIt it = first; it != last; ++it)
 				emplace_back(*it);
 		}
@@ -226,6 +227,7 @@ namespace ostl
 			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
 		void assign(const InputIt first, const InputIt last) {
 			clear();
+			inc_cap(std::distance(first, last));
 			for (InputIt it = first; it != last; ++it)
 				emplace_back(*it);
 		}
