@@ -164,3 +164,16 @@ TEST(Vector, Modifiers) {
 	AssertAllEqual(v, { "abc"s, "def"s });
 	AssertAllEqual(numbers, { "wtf"s, "x35"s });
 }
+
+TEST(Vector, Compare) {
+	const ostl::vector<int> vec1{ 6, 9, 7, 4 };
+	const ostl::vector<int> vec2{ 6, 9, 7, 4 };
+	const ostl::vector<int> vec3{ 5, 8, 8, 2 };
+
+	ASSERT_TRUE(vec1 == vec2);
+	ASSERT_TRUE(vec1 != vec3);
+	ASSERT_TRUE(vec3 < vec1);
+	ASSERT_TRUE(vec1 <= vec2);
+	ASSERT_FALSE(vec1 > vec2);
+	ASSERT_TRUE(vec1 >= vec3);
+}

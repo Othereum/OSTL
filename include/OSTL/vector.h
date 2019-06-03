@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <initializer_list>
 #include <iterator>
 #include <limits>
@@ -476,3 +477,38 @@ template <class V>
 ostl::_VecConstIt<V> operator+(typename ostl::_VecConstIt<V>::difference_type n, ostl::_VecConstIt<V> it) {
 	return it + n;
 }
+
+template <class T, class Alloc>
+bool operator==(const ostl::vector<T, Alloc>& lhs, const ostl::vector<T, Alloc>& rhs) {
+	if (lhs.size() != rhs.size()) return false;
+	const auto end = lhs.end();
+	for (auto l = lhs.begin(), r = rhs.begin(); l != end;)
+		if (*l++ != *r++) return false;
+	return true;
+}
+
+template <class T, class Alloc>
+bool operator!=(const ostl::vector<T, Alloc>& lhs, const ostl::vector<T, Alloc>& rhs) {
+	return !(lhs == rhs);
+}
+
+template <class T, class Alloc>
+bool operator<(const ostl::vector<T, Alloc>& lhs, const ostl::vector<T, Alloc>& rhs) {
+	return std::lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end());
+}
+
+template <class T, class Alloc>
+bool operator<=(const ostl::vector<T, Alloc>& lhs, const ostl::vector<T, Alloc>& rhs) {
+	return lhs < rhs || lhs == rhs;
+}
+
+template <class T, class Alloc>
+bool operator>(const ostl::vector<T, Alloc>& lhs, const ostl::vector<T, Alloc>& rhs) {
+	return !(lhs <= rhs);
+}
+
+template <class T, class Alloc>
+bool operator>=(const ostl::vector<T, Alloc>& lhs, const ostl::vector<T, Alloc>& rhs) {
+	return !(lhs < rhs);
+}
+
