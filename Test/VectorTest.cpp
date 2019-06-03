@@ -31,7 +31,7 @@ TEST(Vector, Constructor) {
 	AssertAllEqual<std::string>(words4, "Mo");
 }
 
-TEST(Vector, Replace) {
+TEST(Vector, Assign) {
 	const auto list = { 3, 1, 4, 6, 5, 9 };
 	const auto expected_size = list.size();
 
@@ -39,32 +39,24 @@ TEST(Vector, Replace) {
 	ostl::vector<int> nums2;
 	ostl::vector<int> nums3;
 
-	ASSERT_EQ(nums1.size(), expected_size);
-	ASSERT_EQ(nums2.size(), 0);
-	ASSERT_EQ(nums3.size(), 0);
 	AssertAllEqual(nums1, list);
-	
+	AssertAllEqual(nums2, {});
+	AssertAllEqual(nums3, {});
+
 	nums2 = nums1;
 
-	ASSERT_EQ(nums1.size(), expected_size);
-	ASSERT_EQ(nums2.size(), expected_size);
-	ASSERT_EQ(nums3.size(), 0);
 	AssertAllEqual(nums1, list);
 	AssertAllEqual(nums2, list);
+	AssertAllEqual(nums3, {});
 
 	nums3 = std::move(nums1);
 
-	ASSERT_EQ(nums1.size(), 0);
-	ASSERT_EQ(nums2.size(), expected_size);
-	ASSERT_EQ(nums3.size(), expected_size);
+	AssertAllEqual(nums1, {});
 	AssertAllEqual(nums2, list);
 	AssertAllEqual(nums3, list);
-}
 
-TEST(Vector, Assign) {
-	ostl::vector<char> characters;
-	characters.assign(5, 'a');
-	AssertAllEqual(characters, 'a');
+	nums1.assign(3, 3);
+	AssertAllEqual(nums1, 3);
 }
 
 TEST(Vector, ElementAccess) {

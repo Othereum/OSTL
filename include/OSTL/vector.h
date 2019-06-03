@@ -215,7 +215,9 @@ namespace ostl
 				std::allocator_traits<Allocator>::construct(alloc_, firstElemPtr_ + i, t);
 		}
 
-		template <class InputIt>
+		template <class InputIt, class = std::enable_if_t<
+			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
+			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
 		void assign(const InputIt first, const InputIt last) {
 			clear();
 			for (InputIt it = first; it != last; ++it)
