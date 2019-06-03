@@ -397,8 +397,14 @@ namespace ostl
 				erase(cbegin() + sz, cend());
 		}
 
-
-		void     swap(vector<T, Allocator>&);
+		void swap(vector& other)
+			noexcept(std::allocator_traits<Allocator>::propagate_on_container_swap::value
+				|| std::allocator_traits<Allocator>::is_always_equal::value)
+		{
+			vector t{ std::move(other) };
+			other = std::move(*this);
+			*this = std::move(t);
+		}
 
 	private:
 		Allocator alloc_;

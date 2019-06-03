@@ -158,4 +158,9 @@ TEST(Vector, Modifiers) {
 
 	numbers.resize(2);
 	AssertAllEqual(numbers, { "abc"s, "def"s });
+
+	ostl::vector<std::string> v{ "wtf"s, "x35"s };
+	v.swap(numbers);
+	AssertAllEqual(v, { "abc"s, "def"s });
+	AssertAllEqual(numbers, { "wtf"s, "x35"s });
 }
