@@ -45,6 +45,11 @@ namespace ostl
 	};
 
 	template <class V>
+	_VecConstIt<V> operator+(typename _VecConstIt<V>::difference_type n, _VecConstIt<V> it) {
+		return it + n;
+	}
+
+	template <class V>
 	class _VecIt : public _VecConstIt<V>
 	{
 	public:
@@ -473,12 +478,9 @@ namespace ostl
 		}
 	};
 
-	template <class InputIt, class Alloc = std::allocator<typename std::iterator_traits<InputIt>::value_type>>
-	vector(InputIt, InputIt, Alloc = Alloc{})->vector<typename std::iterator_traits<InputIt>::value_type, Alloc>;
-
-	template <class V>
-	_VecConstIt<V> operator+(typename _VecConstIt<V>::difference_type n, _VecConstIt<V> it) {
-		return it + n;
+	namespace pmr {
+		template <class T>
+		using vector = ::ostl::vector<T, ::std::pmr::polymorphic_allocator<T>>;
 	}
 
 	template <class T, class Alloc>
@@ -515,8 +517,10 @@ namespace ostl
 		return !(lhs < rhs);
 	}
 
-	namespace pmr {
-		template <class T>
-		using vector = ::ostl::vector<T, ::std::pmr::polymorphic_allocator<T>>;
-	}
+	template <class T, class Alloc>
+	void swap(vector<T, Alloc>& lhs, vector<T, Alloc>& rhs) noexcept(noexcept(lhs.swap(rhs))) { lhs.swap(rhs); }
+
+	// Deduction guide (C++17)
+	template <class InputIt, class Alloc = std::allocator<typename std::iterator_traits<InputIt>::value_type>>
+	vector(InputIt, InputIt, Alloc = Alloc{})->vector<typename std::iterator_traits<InputIt>::value_type, Alloc>;
 }
