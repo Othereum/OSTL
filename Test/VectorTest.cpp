@@ -177,3 +177,31 @@ TEST(Vector, Compare) {
 	ASSERT_FALSE(vec1 > vec2);
 	ASSERT_TRUE(vec1 >= vec3);
 }
+
+TEST(Vector, CapacityGrowth) {
+	ostl::vector<int> v;
+	auto f = [&v](size_t i) {while (i--)v.emplace_back(); };
+	EXPECT_EQ(v.capacity(), 0);
+	f(1);
+	EXPECT_EQ(v.capacity(), 1);
+	f(1);
+	EXPECT_EQ(v.capacity(), 2);
+	f(1);
+	EXPECT_EQ(v.capacity(), 3);
+	f(1);
+	EXPECT_EQ(v.capacity(), 4);
+	f(1);
+	EXPECT_EQ(v.capacity(), 6);
+	f(2);
+	EXPECT_EQ(v.capacity(), 9);
+	f(3);
+	EXPECT_EQ(v.capacity(), 13);
+	f(4);
+	EXPECT_EQ(v.capacity(), 19);
+	f(6);
+	EXPECT_EQ(v.capacity(), 28);
+	f(9);
+	EXPECT_EQ(v.capacity(), 42);
+	f(14);
+	EXPECT_EQ(v.capacity(), 63);
+}

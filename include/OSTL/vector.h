@@ -200,7 +200,7 @@ namespace ostl
 		vector& operator=(std::initializer_list<T> init) {
 			clear();
 			const size_type s = init.size();
-			reserve(s);
+			inc_cap(s);
 			size_ = s;
 			pointer p = firstElemPtr_;
 			for (auto it = init.begin(); it != init.end(); ++it)
@@ -210,7 +210,7 @@ namespace ostl
 
 		void assign(const size_type n, const T& t) {
 			clear();
-			reserve(n);
+			inc_cap(n);
 			size_ = n;
 			for (size_type i = 0; i < n; ++i)
 				std::allocator_traits<Alloc>::construct(alloc_, firstElemPtr_ + i, t);
@@ -228,7 +228,7 @@ namespace ostl
 		void assign(std::initializer_list<T> init) {
 			clear();
 			const size_type s = init.size();
-			reserve(s);
+			inc_cap(s);
 			size_ = s;
 			pointer p = firstElemPtr_;
 			for (auto it = init.begin(); it != init.end(); ++it)
@@ -466,9 +466,9 @@ namespace ostl
 		}
 
 		size_type new_cap(const size_type required) const {
-			size_type newCap = capacity_ == 0 && required != 0 ? 1 : capacity_;
+			size_type newCap = std::max<size_type>(1, capacity_);
 			while (newCap < required)
-				newCap *= 2;
+				newCap = std::max<size_type>(2, newCap * 3 / 2);
 			return newCap;
 		}
 	};
