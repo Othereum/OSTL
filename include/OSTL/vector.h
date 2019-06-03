@@ -520,6 +520,16 @@ namespace ostl
 	template <class T, class Alloc>
 	void swap(vector<T, Alloc>& lhs, vector<T, Alloc>& rhs) noexcept(noexcept(lhs.swap(rhs))) { lhs.swap(rhs); }
 
+	template <class T, class Alloc, class U>
+	void erase(vector<T, Alloc>& c, const U& value) {
+		c.erase(std::remove(c.begin(), c.end(), value), c.end());
+	}
+
+	template <class T, class Alloc, class Pred>
+	void erase(vector<T, Alloc>& c, Pred pred) {
+		c.erase(std::remove_if(c.begin(), c.end(), pred), c.end());
+	}
+
 	// Deduction guide (C++17)
 	template <class InputIt, class Alloc = std::allocator<typename std::iterator_traits<InputIt>::value_type>>
 	vector(InputIt, InputIt, Alloc = Alloc{})->vector<typename std::iterator_traits<InputIt>::value_type, Alloc>;
