@@ -528,4 +528,195 @@ namespace ostl {
 	// Deduction guide (C++17)
 	template <class InputIt, class Alloc = std::allocator<typename std::iterator_traits<InputIt>::value_type>>
 	vector(InputIt, InputIt, Alloc = Alloc{})->vector<typename std::iterator_traits<InputIt>::value_type, Alloc>;
+
+	template <class Alloc>
+	class vector<bool, Alloc> {
+	public:
+		using value_type = bool;
+		using allocator_type = Alloc;
+		using size_type = size_t;
+		using difference_type = ptrdiff_t;
+		using const_reference = bool;
+
+		class reference {
+		public:
+			reference(unsigned char& ref, unsigned char bitOffset) noexcept
+				:ref{ ref }, bitOffset{ bitOffset } {}
+			operator bool() const noexcept { return ref >> bitOffset & 1; }
+			reference& operator=(const bool x) noexcept {
+				const unsigned char b = 1 << bitOffset;
+				if (x) ref |= b;
+				else ref &= ~b;
+				return *this;
+			}
+			reference& operator=(const reference& x) noexcept { return *this = bool(x); }
+			void flip() noexcept { *this = !*this; }
+
+		private:
+			unsigned char& ref;
+			const unsigned char bitOffset;
+		};
+
+		class const_iterator {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = bool;
+			using difference_type = difference_type;
+			using pointer = bool*;
+			using reference = bool;
+
+			const_iterator() = default;
+			const_iterator(unsigned char* firstElemPtr, size_type idx)
+				:ptr{ firstElemPtr + idx / 8 }, bitOffset{ idx % 8 } {}
+
+			reference operator*() const { return *ptr << bitOffset & 1; }
+			reference operator[](difference_type n) const { return ptr[n / 8] << (bitOffset + n) % 8 & 1; }
+			const_iterator& operator++() { return *this += 1; }
+			const_iterator operator++(int) { const_iterator it = *this; ++*this; return it; }
+			const_iterator& operator--() { return *this -= 1; }
+			const_iterator operator--(int) { const_iterator it = *this; --*this; return it; }
+			const_iterator& operator+=(difference_type n) {
+				const difference_type d = bitOffset + n;
+				ptr += (d < 0 ? d - 7 : d) / 8;
+				bitOffset = d & 7;
+				return *this;
+			}
+			const_iterator operator+(difference_type n) const { const_iterator it = *this; it += n; return it; }
+			const_iterator& operator-=(difference_type n) { return *this += -n; }
+			const_iterator operator-(difference_type n) const { return *this + -n; }
+			difference_type operator-(const const_iterator& rhs) const { return (ptr - rhs.ptr) * 8 + (bitOffset - rhs.bitOffset); }
+			bool operator==(const const_iterator& rhs) const { return ptr == rhs.ptr && bitOffset == rhs.bitOffset; }
+			bool operator!=(const const_iterator& rhs) const { return !(*this == rhs); }
+			bool operator<(const const_iterator& rhs) const { return ptr < rhs.ptr || ptr == rhs.ptr && bitOffset < rhs.bitOffset; }
+			bool operator>(const const_iterator& rhs) const { return rhs < *this; }
+			bool operator>=(const const_iterator& rhs) const { return !(*this < rhs); }
+			bool operator<=(const const_iterator& rhs) const { return !(*this > rhs); }
+
+		protected:
+			unsigned char* ptr = nullptr;
+			unsigned char bitOffset = 0;
+		};
+
+		class iterator : public const_iterator {
+		public:
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = bool;
+			using difference_type = difference_type;
+			using pointer = reference *;
+			using reference = reference;
+
+			iterator() = default;
+			iterator(unsigned char* firstElemPtr, size_type idx)
+				:const_iterator{ firstElemPtr, idx } {}
+
+			reference operator*() const { return { *ptr, bitOffset }; }
+			reference operator[](difference_type n) const { return { ptr[n / 8], (bitOffset + n) % 8 }; }
+			iterator& operator++() { return *this += 1; }
+			iterator operator++(int) { iterator it = *this; ++* this; return it; }
+			iterator& operator--() { return *this -= 1; }
+			iterator operator--(int) { iterator it = *this; --* this; return it; }
+			iterator& operator+=(difference_type n) {
+				const difference_type d = bitOffset + n;
+				ptr += (d < 0 ? d - 7 : d) / 8;
+				bitOffset = d & 7;
+				return *this;
+			}
+			iterator operator+(difference_type n) const { iterator it = *this; it += n; return it; }
+			iterator& operator-=(difference_type n) { return *this += -n; }
+			iterator operator-(difference_type n) const { return *this + -n; }
+			difference_type operator-(const iterator& rhs) const { return (ptr - rhs.ptr) * 8 + (bitOffset - rhs.bitOffset); }
+			bool operator==(const iterator& rhs) const { return ptr == rhs.ptr && bitOffset == rhs.bitOffset; }
+			bool operator!=(const iterator& rhs) const { return !(*this == rhs); }
+			bool operator<(const iterator& rhs) const { return ptr < rhs.ptr || ptr == rhs.ptr && bitOffset < rhs.bitOffset; }
+			bool operator>(const iterator& rhs) const { return rhs < *this; }
+			bool operator>=(const iterator& rhs) const { return !(*this < rhs); }
+			bool operator<=(const iterator& rhs) const { return !(*this > rhs); }
+		};
+
+		using reverse_iterator = std::reverse_iterator<iterator>;
+		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+		using pointer = iterator;
+		using const_pointer = const_iterator;
+
+
+		// construct/copy/destroy:
+		explicit vector(const Allocator & = Allocator());
+		explicit vector(size_type n);
+		vector(size_type n, const bool& value, const Allocator & = Allocator());
+		template <class InputIt>
+		vector(InputIt first, InputIt last, const Allocator & = Allocator());
+		vector(const vector<bool, Allocator>& x);
+		vector(vector&&);
+		vector(const vector&, const Allocator&);
+		vector(vector&&, const Allocator&);
+		vector(initializer_list<bool>, const Allocator & = Allocator());
+
+		~vector();
+		vector<bool, Allocator>& operator=(const vector<bool, Allocator>& x);
+		vector<bool, Allocator>& operator=(vector<bool, Allocator>&& x);
+		vector& operator=(initializer_list<bool>);
+		template <class InputIt>
+		void assign(InputIt first, InputIt last);
+		void assign(size_type n, const bool& t);
+		void assign(initializer_list<bool>);
+		allocator_type get_allocator() const noexcept;
+
+		// iterators:
+		iterator                begin() noexcept;
+		const_iterator          begin() const noexcept;
+		iterator                end() noexcept;
+		const_iterator          end() const noexcept;
+
+		reverse_iterator        rbegin() noexcept;
+		const_reverse_iterator  rbegin() const noexcept;
+		reverse_iterator        rend() noexcept;
+		const_reverse_iterator  rend() const noexcept;
+
+		const_iterator          cbegin() const noexcept;
+		const_iterator          cend() const noexcept;
+		const_reverse_iterator  crbegin() const nSoexcept;
+		const_reverse_iterator  crend() const noexcept;
+
+		// capacity:
+		size_type size() const noexcept;
+		size_type max_size() const noexcept;
+		void      resize(size_type sz);
+		void      resize(size_type sz, const bool& c);
+		size_type capacity() const noexcept;
+		[[nodiscard]] bool empty() const noexcept;
+		void      reserve(size_type n);
+		void      shrink_to_fit();
+
+		// element access:
+		reference       operator[](size_type n);
+		const_reference operator[](size_type n) const;
+		reference       at(size_type n);
+		const_reference at(size_type n) const;
+		reference       front();
+		const_reference front() const;
+		reference       back();
+		const_reference back() const;
+
+		// modifiers:
+		template <class... Args> void emplace_back(Args&& ... args);
+		void push_back(const bool& x);
+		void push_back(bool&& x);
+		void pop_back();
+
+		template <class... Args> iterator emplace(const_iterator position, Args&& ... args);
+		iterator insert(const_iterator position, const bool& x);
+		iterator insert(const_iterator position, bool&& x);
+		iterator insert(const_iterator position, size_type n, const bool& x);
+		template <class InputIt>
+		iterator insert(const_iterator position, InputIt first,
+			InputIt last);
+		iterator insert(const_iterator position, initializer_list<bool>);
+
+		iterator erase(const_iterator position);
+		iterator erase(const_iterator first, const_iterator last);
+		void     swap(vector<bool, Allocator>&);
+		static void swap(reference x, reference y) noexcept;
+		void     flip() noexcept;// flips all bits
+		void     clear() noexcept;
+	};
 }
