@@ -379,8 +379,23 @@ namespace ostl
 
 		void pop_back() { erase(cend() - 1); }
 
-		void resize(size_type sz);
-		void      resize(size_type sz, const T& c);
+		void resize(size_type sz) {
+			if (size_ < sz) {
+				inc_cap(sz);
+				pointer it = firstElemPtr_ + sz;
+				for (size_type i = sz - size_; i; --i)
+					std::allocator_traits<Allocator>::construct(alloc_, it++);
+				size_ = sz;
+			}
+			else if (size_ > sz)
+				erase(cbegin() + sz, cend());
+		}
+		void resize(size_type sz, const T& c) {
+			if (size_ < sz)
+				insert(cbegin() + size_, sz - size_, c);
+			else if (size_ > sz)
+				erase(cbegin() + sz, cend());
+		}
 
 
 		void     swap(vector<T, Allocator>&);
@@ -428,6 +443,17 @@ namespace ostl
 				std::allocator_traits<Allocator>::construct(alloc_, dest, std::move(*src));
 				std::allocator_traits<Allocator>::destroy(alloc_, src);
 				op(src); op(dest);
+			}
+		}
+
+		void inc_cap(const size_type minReqCap) {
+			if (capacity_ < minReqCap) {
+				const size_type newCap = new_cap(minReqCap);
+				const pointer newMem = alloc_.allocate(newCap);
+				move(firstElemPtr_, newMem, size_);
+				alloc_.deallocate(firstElemPtr_, capacity_);
+				firstElemPtr_ = newMem;
+				capacity_ = newCap;
 			}
 		}
 

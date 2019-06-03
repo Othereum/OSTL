@@ -135,7 +135,7 @@ TEST(Vector, Erase) {
 	AssertAllEqual(c, { 1,7,9 });
 }
 
-TEST(Vector, PushPopEmplaceBack) {
+TEST(Vector, Modifiers) {
 	using namespace std::string_literals;
 
 	ostl::vector<std::string> numbers;
@@ -148,5 +148,14 @@ TEST(Vector, PushPopEmplaceBack) {
 	ASSERT_EQ(s, ""s);
 
 	numbers.pop_back();
+	AssertAllEqual(numbers, { "abc"s, "def"s });
+
+	numbers.resize(4, "wow"s);
+	AssertAllEqual(numbers, { "abc"s, "def"s, "wow"s, "wow"s });
+
+	numbers.resize(6, ""s);
+	AssertAllEqual(numbers, { "abc"s, "def"s, "wow"s, "wow"s, ""s, ""s });
+
+	numbers.resize(2);
 	AssertAllEqual(numbers, { "abc"s, "def"s });
 }
