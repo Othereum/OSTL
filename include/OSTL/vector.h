@@ -538,23 +538,30 @@ namespace ostl {
 		using difference_type = ptrdiff_t;
 		using const_reference = bool;
 
+	private:
+		using _T = unsigned;
+		using _NBT = unsigned char;
+		static constexpr _NBT _nBit = sizeof _T * 8;
+
+	public:
 		class reference {
 		public:
-			reference(unsigned char& ref, unsigned char bitOffset) noexcept
-				:ref{ ref }, bitOffset{ bitOffset } {}
-			operator bool() const noexcept { return ref >> bitOffset & 1; }
+			[[nodiscard]] operator bool() const noexcept { return ref >> bitOffset & 1; }
 			reference& operator=(const bool x) noexcept {
-				const unsigned char b = 1 << bitOffset;
+				const _T b = 1 << bitOffset;
 				if (x) ref |= b;
 				else ref &= ~b;
 				return *this;
 			}
-			reference& operator=(const reference& x) noexcept { return *this = bool(x); }
+			reference& operator=(const reference& x) noexcept { return *this = bool{ x }; }
 			void flip() noexcept { *this = !*this; }
 
 		private:
-			unsigned char& ref;
-			const unsigned char bitOffset;
+			friend class vector<bool, Alloc>;
+			friend class vector<bool, Alloc>::iterator;
+			reference(_T& ref, _NBT bitOffset) noexcept :ref{ ref }, bitOffset{ bitOffset } {}
+			_T& ref;
+			const _NBT bitOffset;
 		};
 
 		class const_iterator {
@@ -566,35 +573,34 @@ namespace ostl {
 			using reference = bool;
 
 			const_iterator() = default;
-			const_iterator(unsigned char* firstElemPtr, size_type idx)
-				:ptr{ firstElemPtr + idx / 8 }, bitOffset{ idx % 8 } {}
+			const_iterator(_T* firstElemPtr, size_type idx) :ptr{ firstElemPtr + idx / _nBit }, bitOffset{ idx % _nBit } {}
 
-			reference operator*() const { return *ptr << bitOffset & 1; }
-			reference operator[](difference_type n) const { return ptr[n / 8] << (bitOffset + n) % 8 & 1; }
+			[[nodiscard]] reference operator*() const { return *ptr << bitOffset & 1; }
+			[[nodiscard]] reference operator[](difference_type n) const { return ptr[n / _nBit] << (bitOffset + n) % _nBit & 1; }
 			const_iterator& operator++() { return *this += 1; }
 			const_iterator operator++(int) { const_iterator it = *this; ++*this; return it; }
 			const_iterator& operator--() { return *this -= 1; }
 			const_iterator operator--(int) { const_iterator it = *this; --*this; return it; }
 			const_iterator& operator+=(difference_type n) {
 				const difference_type d = bitOffset + n;
-				ptr += (d < 0 ? d - 7 : d) / 8;
-				bitOffset = d & 7;
+				ptr += (d < 0 ? d - (_nBit - 1) : d) / _nBit;
+				bitOffset = d & (_nBit - 1);
 				return *this;
 			}
-			const_iterator operator+(difference_type n) const { const_iterator it = *this; it += n; return it; }
+			[[nodiscard]] const_iterator operator+(difference_type n) const { const_iterator it = *this; it += n; return it; }
 			const_iterator& operator-=(difference_type n) { return *this += -n; }
-			const_iterator operator-(difference_type n) const { return *this + -n; }
-			difference_type operator-(const const_iterator& rhs) const { return (ptr - rhs.ptr) * 8 + (bitOffset - rhs.bitOffset); }
-			bool operator==(const const_iterator& rhs) const { return ptr == rhs.ptr && bitOffset == rhs.bitOffset; }
-			bool operator!=(const const_iterator& rhs) const { return !(*this == rhs); }
-			bool operator<(const const_iterator& rhs) const { return ptr < rhs.ptr || ptr == rhs.ptr && bitOffset < rhs.bitOffset; }
-			bool operator>(const const_iterator& rhs) const { return rhs < *this; }
-			bool operator>=(const const_iterator& rhs) const { return !(*this < rhs); }
-			bool operator<=(const const_iterator& rhs) const { return !(*this > rhs); }
+			[[nodiscard]] const_iterator operator-(difference_type n) const { return *this + -n; }
+			[[nodiscard]] difference_type operator-(const const_iterator& rhs) const { return (ptr - rhs.ptr) * _nBit + (bitOffset - rhs.bitOffset); }
+			[[nodiscard]] bool operator==(const const_iterator& rhs) const { return ptr == rhs.ptr && bitOffset == rhs.bitOffset; }
+			[[nodiscard]] bool operator!=(const const_iterator& rhs) const { return !(*this == rhs); }
+			[[nodiscard]] bool operator<(const const_iterator& rhs) const { return ptr < rhs.ptr || ptr == rhs.ptr && bitOffset < rhs.bitOffset; }
+			[[nodiscard]] bool operator>(const const_iterator& rhs) const { return rhs < *this; }
+			[[nodiscard]] bool operator>=(const const_iterator& rhs) const { return !(*this < rhs); }
+			[[nodiscard]] bool operator<=(const const_iterator& rhs) const { return !(*this > rhs); }
 
 		protected:
-			unsigned char* ptr = nullptr;
-			unsigned char bitOffset = 0;
+			_T* ptr = nullptr;
+			_NBT bitOffset = 0;
 		};
 
 		class iterator : public const_iterator {
@@ -606,31 +612,30 @@ namespace ostl {
 			using reference = reference;
 
 			iterator() = default;
-			iterator(unsigned char* firstElemPtr, size_type idx)
-				:const_iterator{ firstElemPtr, idx } {}
+			iterator(_T* firstElemPtr, size_type idx) :const_iterator{ firstElemPtr, idx } {}
 
-			reference operator*() const { return { *ptr, bitOffset }; }
-			reference operator[](difference_type n) const { return { ptr[n / 8], (bitOffset + n) % 8 }; }
+			[[nodiscard]] reference operator*() const { return { *ptr, bitOffset }; }
+			[[nodiscard]] reference operator[](difference_type n) const { return { ptr[n / _nBit], (bitOffset + n) % _nBit }; }
 			iterator& operator++() { return *this += 1; }
 			iterator operator++(int) { iterator it = *this; ++* this; return it; }
 			iterator& operator--() { return *this -= 1; }
 			iterator operator--(int) { iterator it = *this; --* this; return it; }
 			iterator& operator+=(difference_type n) {
 				const difference_type d = bitOffset + n;
-				ptr += (d < 0 ? d - 7 : d) / 8;
-				bitOffset = d & 7;
+				ptr += (d < 0 ? d - (_nBit - 1) : d) / _nBit;
+				bitOffset = d & (_nBit - 1);
 				return *this;
 			}
-			iterator operator+(difference_type n) const { iterator it = *this; it += n; return it; }
+			[[nodiscard]] iterator operator+(difference_type n) const { iterator it = *this; it += n; return it; }
 			iterator& operator-=(difference_type n) { return *this += -n; }
-			iterator operator-(difference_type n) const { return *this + -n; }
-			difference_type operator-(const iterator& rhs) const { return (ptr - rhs.ptr) * 8 + (bitOffset - rhs.bitOffset); }
-			bool operator==(const iterator& rhs) const { return ptr == rhs.ptr && bitOffset == rhs.bitOffset; }
-			bool operator!=(const iterator& rhs) const { return !(*this == rhs); }
-			bool operator<(const iterator& rhs) const { return ptr < rhs.ptr || ptr == rhs.ptr && bitOffset < rhs.bitOffset; }
-			bool operator>(const iterator& rhs) const { return rhs < *this; }
-			bool operator>=(const iterator& rhs) const { return !(*this < rhs); }
-			bool operator<=(const iterator& rhs) const { return !(*this > rhs); }
+			[[nodiscard]] iterator operator-(difference_type n) const { return *this + -n; }
+			[[nodiscard]] difference_type operator-(const iterator& rhs) const { return (ptr - rhs.ptr) * _nBit + (bitOffset - rhs.bitOffset); }
+			[[nodiscard]] bool operator==(const iterator& rhs) const { return ptr == rhs.ptr && bitOffset == rhs.bitOffset; }
+			[[nodiscard]] bool operator!=(const iterator& rhs) const { return !(*this == rhs); }
+			[[nodiscard]] bool operator<(const iterator& rhs) const { return ptr < rhs.ptr || ptr == rhs.ptr && bitOffset < rhs.bitOffset; }
+			[[nodiscard]] bool operator>(const iterator& rhs) const { return rhs < *this; }
+			[[nodiscard]] bool operator>=(const iterator& rhs) const { return !(*this < rhs); }
+			[[nodiscard]] bool operator<=(const iterator& rhs) const { return !(*this > rhs); }
 		};
 
 		using reverse_iterator = std::reverse_iterator<iterator>;
@@ -638,85 +643,187 @@ namespace ostl {
 		using pointer = iterator;
 		using const_pointer = const_iterator;
 
+		vector() = default;
+		explicit vector(const Alloc& alloc) noexcept :vec_{ alloc } {}
 
-		// construct/copy/destroy:
-		explicit vector(const Allocator & = Allocator());
-		explicit vector(size_type n);
-		vector(size_type n, const bool& value, const Allocator & = Allocator());
-		template <class InputIt>
-		vector(InputIt first, InputIt last, const Allocator & = Allocator());
-		vector(const vector<bool, Allocator>& x);
-		vector(vector&&);
-		vector(const vector&, const Allocator&);
-		vector(vector&&, const Allocator&);
-		vector(initializer_list<bool>, const Allocator & = Allocator());
+		vector(size_type n, bool value, const Alloc& alloc = Alloc{})
+			:vec_{ (n + (_nBit - 1)) / _nBit, 0 - value, alloc }, size_{ n }
+		{ vec_.back() = ((_T)value << n - _nBit * (vec_.size() - 1)) - 1; }
 
-		~vector();
-		vector<bool, Allocator>& operator=(const vector<bool, Allocator>& x);
-		vector<bool, Allocator>& operator=(vector<bool, Allocator>&& x);
-		vector& operator=(initializer_list<bool>);
-		template <class InputIt>
-		void assign(InputIt first, InputIt last);
-		void assign(size_type n, const bool& t);
-		void assign(initializer_list<bool>);
-		allocator_type get_allocator() const noexcept;
+		explicit vector(size_type n, const Alloc& alloc = Alloc{})
+			:vec_{ (n + (_nBit - 1)) / _nBit, alloc }, size_{ n } { }
 
-		// iterators:
-		iterator                begin() noexcept;
-		const_iterator          begin() const noexcept;
-		iterator                end() noexcept;
-		const_iterator          end() const noexcept;
+		template <class InputIt, class = std::enable_if_t<
+			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
+			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
+		vector(InputIt first, InputIt last, const Alloc& alloc = Alloc{})
+			:size_{ std::distance(first, last) }
+		{
+			const size_type s = (size_ + (_nBit - 1)) / _nBit;
+			vec_.reserve(s);
+			for (size_type i = 0; i < s; ++i) {
+				_T bits = 0;
+				for (_NBT j = 0; j < _nBit && first != last; ++j)
+					bits |= *first++ << j;
+				vec_.push_back(bits);
+			}
+		}
 
-		reverse_iterator        rbegin() noexcept;
-		const_reverse_iterator  rbegin() const noexcept;
-		reverse_iterator        rend() noexcept;
-		const_reverse_iterator  rend() const noexcept;
+		vector(const vector& x, const Alloc& alloc) :vec_{ x.vec_, alloc }, size_{ x.size_ } {}
+		vector(vector&& x) noexcept :vec_{ std::move(x) }, size_{ x.size_ } { x.size_ = 0; }
+		vector(vector&& x, const Alloc& alloc) :vec_{ std::move(x), alloc }, size_{ x.size_ } { x.size_ = 0; }
+		vector(std::initializer_list<bool> init, const Alloc& alloc = Alloc{}) :vector{ init.begin(), init.end(), alloc } {}
 
-		const_iterator          cbegin() const noexcept;
-		const_iterator          cend() const noexcept;
-		const_reverse_iterator  crbegin() const nSoexcept;
-		const_reverse_iterator  crend() const noexcept;
+		vector& operator=(vector&& x)
+			noexcept(std::allocator_traits<Alloc>::propagate_on_container_move_assignment::value
+				|| std::allocator_traits<Alloc>::is_always_equal::value)
+		{
+			vec_ = std::move(x.vec_);
+			size_ = x.size_;
+			x.size_ = 0;
+			return *this;
+		}
 
-		// capacity:
-		size_type size() const noexcept;
-		size_type max_size() const noexcept;
-		void      resize(size_type sz);
-		void      resize(size_type sz, const bool& c);
-		size_type capacity() const noexcept;
-		[[nodiscard]] bool empty() const noexcept;
-		void      reserve(size_type n);
-		void      shrink_to_fit();
+		vector& operator=(std::initializer_list<bool> init) { return *this = vector(init, vec_.get_allocator()); }
 
-		// element access:
-		reference       operator[](size_type n);
-		const_reference operator[](size_type n) const;
-		reference       at(size_type n);
-		const_reference at(size_type n) const;
-		reference       front();
-		const_reference front() const;
-		reference       back();
-		const_reference back() const;
+		void assign(const size_type n, bool t) { *this = vector(n, t, vec_.get_allocator()); }
 
-		// modifiers:
-		template <class... Args> void emplace_back(Args&& ... args);
-		void push_back(const bool& x);
-		void push_back(bool&& x);
-		void pop_back();
+		template <class InputIt, class = std::enable_if_t<
+			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
+			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
+		void assign(InputIt first, InputIt last) { *this = vector(first, last, vec_.get_allocator()); }
 
-		template <class... Args> iterator emplace(const_iterator position, Args&& ... args);
-		iterator insert(const_iterator position, const bool& x);
-		iterator insert(const_iterator position, bool&& x);
-		iterator insert(const_iterator position, size_type n, const bool& x);
-		template <class InputIt>
-		iterator insert(const_iterator position, InputIt first,
-			InputIt last);
-		iterator insert(const_iterator position, initializer_list<bool>);
+		void assign(std::initializer_list<T> init) { *this = vector(init, vec_.get_allocator()); }
 
-		iterator erase(const_iterator position);
-		iterator erase(const_iterator first, const_iterator last);
-		void     swap(vector<bool, Allocator>&);
-		static void swap(reference x, reference y) noexcept;
-		void     flip() noexcept;// flips all bits
-		void     clear() noexcept;
+		[[nodiscard]] allocator_type get_allocator() const noexcept { return vec_.get_allocator(); }
+
+		[[nodiscard]] reference       at(size_type n) { if (n >= size_) throw std::out_of_range{ "" }; return (*this)[n]; }
+		[[nodiscard]] const_reference at(size_type n) const { if (n >= size_) throw std::out_of_range{ "" }; return (*this)[n]; }
+		[[nodiscard]] reference       operator[](size_type n) { return begin()[n]; }
+		[[nodiscard]] const_reference operator[](size_type n) const { return begin()[n]; }
+		[[nodiscard]] reference       front() { return *begin(); }
+		[[nodiscard]] const_reference front() const { return *begin(); }
+		[[nodiscard]] reference       back() { return end()[-1]; }
+		[[nodiscard]] const_reference back() const { return end()[-1]; }
+
+		[[nodiscard]] iterator                begin() noexcept { return { vec_.data(), 0 }; }
+		[[nodiscard]] const_iterator          begin() const noexcept { return { vec_.data(), 0 }; }
+		[[nodiscard]] const_iterator          cbegin() const noexcept { return { vec_.data(), 0 }; }
+
+		[[nodiscard]] iterator                end() noexcept { return { vec_.data(), size_ - 1 }; }
+		[[nodiscard]] const_iterator          end() const noexcept { return { vec_.data(), size_ - 1 }; }
+		[[nodiscard]] const_iterator          cend() const noexcept { return { vec_.data(), size_ - 1 }; }
+
+		[[nodiscard]] reverse_iterator        rbegin() noexcept { return reverse_iterator{ end() }; }
+		[[nodiscard]] const_reverse_iterator  rbegin() const noexcept { return const_reverse_iterator{ end() }; }
+		[[nodiscard]] const_reverse_iterator  crbegin() const noexcept { return const_reverse_iterator{ cend() }; }
+
+		[[nodiscard]] reverse_iterator        rend() noexcept { return reverse_iterator{ begin() }; }
+		[[nodiscard]] const_reverse_iterator  rend() const noexcept { return const_reverse_iterator{ begin() }; }
+		[[nodiscard]] const_reverse_iterator  crend() const noexcept { return const_reverse_iterator{ cbegin() }; }
+
+		[[nodiscard]] bool empty() const noexcept { return size_ == 0; }
+		[[nodiscard]] size_type size() const noexcept { return size_; }
+		[[nodiscard]] constexpr size_type max_size() const noexcept { return std::numeric_limits<difference_type>::max(); }
+		void reserve(const size_type n) { vec_.reserve((n + (_nBit - 1)) / _nBit); }
+		[[nodiscard]] size_type capacity() const noexcept { return vec_.capacity() * _nBit; }
+
+		void clear() noexcept { vec_.clear(); size_ = 0; }
+
+		iterator insert(const_iterator position, const T& x) { return emplace(position, x); }
+		iterator insert(const_iterator position, T&& x) { return emplace(position, std::move(x)); }
+		iterator insert(const_iterator position, size_type n, const T& x) {
+			const pointer it = shift(position - cbegin(), n);
+			for (size_type i = 0; i < n; ++i)
+				std::allocator_traits<Alloc>::construct(alloc_, it + i, x);
+			size_ += n;
+			return iterator{ it };
+		}
+
+		template <class InputIt, class = std::enable_if_t<
+			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
+			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
+			iterator insert(const_iterator position, InputIt first, InputIt last) {
+			const difference_type offset = position-- - cbegin();
+			while (first != last) position = emplace(++position, *first++);
+			return begin() + offset;
+		}
+
+		iterator insert(const_iterator position, std::initializer_list<T> list) {
+			const pointer first = shift(position - cbegin(), list.size());
+			pointer it = first;
+			for (const T& x : list)
+				std::allocator_traits<Alloc>::construct(alloc_, it++, x);
+			size_ += list.size();
+			return iterator{ first };
+		}
+
+		template <class... Args>
+		iterator emplace(const_iterator position, Args&& ... args) {
+			const pointer new_elem = shift(position - begin(), 1);
+			std::allocator_traits<Alloc>::construct(alloc_, new_elem, std::forward<Args>(args)...);
+			++size_;
+			return iterator{ new_elem };
+		}
+
+		iterator erase(const_iterator position) {
+			const pointer p = const_cast<pointer>(const_pointer{ position });
+			std::allocator_traits<Alloc>::destroy(alloc_, p);
+			move(p + 1, p, size_ - (p - firstElemPtr_) - 1);
+			--size_;
+			return iterator{ p };
+		}
+
+		iterator erase(const_iterator first, const_iterator last) {
+			const pointer f = const_cast<pointer>(const_pointer{ first });
+			const pointer l = const_cast<pointer>(const_pointer{ last });
+
+			for (pointer it = f; it != l; ++it)
+				std::allocator_traits<Alloc>::destroy(alloc_, it);
+
+			move(l, f, size_ - (l - firstElemPtr_));
+			size_ -= l - f;
+
+			return iterator{ f };
+		}
+
+		void push_back(const T& x) { emplace_back(x); }
+		void push_back(T&& x) { emplace_back(std::move(x)); }
+
+		template <class... Args>
+		void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }
+
+		void pop_back() { erase(cend() - 1); }
+
+		void resize(size_type sz) {
+			if (size_ < sz) {
+				inc_cap(sz);
+				pointer it = firstElemPtr_ + sz;
+				for (size_type i = sz - size_; i; --i)
+					std::allocator_traits<Alloc>::construct(alloc_, it++);
+				size_ = sz;
+			}
+			else if (size_ > sz)
+				erase(cbegin() + sz, cend());
+		}
+		void resize(size_type sz, const T& c) {
+			if (size_ < sz)
+				insert(cbegin() + size_, sz - size_, c);
+			else if (size_ > sz)
+				erase(cbegin() + sz, cend());
+		}
+
+		void swap(vector& other)
+			noexcept(std::allocator_traits<Alloc>::propagate_on_container_swap::value
+				|| std::allocator_traits<Alloc>::is_always_equal::value)
+		{
+			vector t{ std::move(other) };
+			other = std::move(*this);
+			*this = std::move(t);
+		}
+
+	private:
+		vector<_T, Alloc> vec_;
+		size_type size_ = 0;
 	};
 }
