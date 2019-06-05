@@ -608,8 +608,8 @@ namespace ostl {
 			using iterator_category = std::random_access_iterator_tag;
 			using value_type = bool;
 			using difference_type = difference_type;
-			using pointer = reference *;
-			using reference = reference;
+			using pointer = vector::reference*;
+			using reference = vector::reference;
 
 			iterator() = default;
 			iterator(_T* firstElemPtr, size_type idx) :const_iterator{ firstElemPtr, idx } {}
@@ -669,11 +669,13 @@ namespace ostl {
 			}
 		}
 
+		vector(const vector&) = default;
 		vector(const vector& x, const Alloc& alloc) :vec_{ x.vec_, alloc }, size_{ x.size_ } {}
 		vector(vector&& x) noexcept :vec_{ std::move(x) }, size_{ x.size_ } { x.size_ = 0; }
 		vector(vector&& x, const Alloc& alloc) :vec_{ std::move(x), alloc }, size_{ x.size_ } { x.size_ = 0; }
 		vector(std::initializer_list<bool> init, const Alloc& alloc = Alloc{}) :vector{ init.begin(), init.end(), alloc } {}
 
+		vector& operator=(const vector&) = default;
 		vector& operator=(vector&& x)
 			noexcept(std::allocator_traits<Alloc>::propagate_on_container_move_assignment::value
 				|| std::allocator_traits<Alloc>::is_always_equal::value)
@@ -828,7 +830,7 @@ namespace ostl {
 				vec_.insert(vec_.end(), (min - vec_.size() * _nBit + _nBit - 1) / _nBit, 0);
 		}
 
-		vector<_T, Alloc> vec_;
+		vector<_T, std::allocator_traits<Alloc>::rebind_alloc<_T>> vec_;
 		size_type size_ = 0;
 	};
 }
