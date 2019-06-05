@@ -575,8 +575,8 @@ namespace ostl {
 			const_iterator() = default;
 			const_iterator(_T* firstElemPtr, size_type idx) :ptr{ firstElemPtr + idx / _nBit }, bitOffset{ idx % _nBit } {}
 
-			[[nodiscard]] reference operator*() const { return *ptr << bitOffset & 1; }
-			[[nodiscard]] reference operator[](difference_type n) const { return ptr[n / _nBit] << (bitOffset + n) % _nBit & 1; }
+			[[nodiscard]] bool operator*() const { return *ptr << bitOffset & 1; }
+			[[nodiscard]] bool operator[](difference_type n) const { return ptr[n / _nBit] << (bitOffset + n) % _nBit & 1; }
 			const_iterator& operator++() { return *this += 1; }
 			const_iterator operator++(int) { const_iterator it = *this; ++*this; return it; }
 			const_iterator& operator--() { return *this -= 1; }
@@ -730,83 +730,69 @@ namespace ostl {
 
 		void clear() noexcept { vec_.clear(); size_ = 0; }
 
-		iterator insert(const_iterator position, const T& x) { return emplace(position, x); }
-		iterator insert(const_iterator position, T&& x) { return emplace(position, std::move(x)); }
-		iterator insert(const_iterator position, size_type n, const T& x) {
-			const pointer it = shift(position - cbegin(), n);
-			for (size_type i = 0; i < n; ++i)
-				std::allocator_traits<Alloc>::construct(alloc_, it + i, x);
-			size_ += n;
-			return iterator{ it };
+		iterator insert(const_iterator position, bool x) { return insert(position, 1, x); }
+		iterator insert(const_iterator position, size_type n, bool x) {
+			iterator it = begin();
+			const difference_type d = position - it;
+			move(position, position + n, size_ - d);
+			it += d;
+			const iterator ret = it;
+			while (n--) *it++ = x;
+			return it;
 		}
 
 		template <class InputIt, class = std::enable_if_t<
 			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
 			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
-			iterator insert(const_iterator position, InputIt first, InputIt last) {
-			const difference_type offset = position-- - cbegin();
-			while (first != last) position = emplace(++position, *first++);
-			return begin() + offset;
+		iterator insert(const_iterator position, InputIt first, InputIt last) {
+			iterator it = begin();
+			const difference_type d = position - it;
+			difference_type n = std::distance(first, last);
+			move(position, position + n, size_ - d);
+			it += d;
+			const iterator ret = it;
+			while (n--) *it++ = *first++;
+			return it;
 		}
 
-		iterator insert(const_iterator position, std::initializer_list<T> list) {
-			const pointer first = shift(position - cbegin(), list.size());
-			pointer it = first;
-			for (const T& x : list)
-				std::allocator_traits<Alloc>::construct(alloc_, it++, x);
-			size_ += list.size();
-			return iterator{ first };
+		iterator insert(const_iterator position, std::initializer_list<bool> list) {
+			insert(position, list.begin(), list.end());
 		}
 
 		template <class... Args>
 		iterator emplace(const_iterator position, Args&& ... args) {
-			const pointer new_elem = shift(position - begin(), 1);
-			std::allocator_traits<Alloc>::construct(alloc_, new_elem, std::forward<Args>(args)...);
-			++size_;
-			return iterator{ new_elem };
+			return insert(position, bool{ std::forward<Args>(args)... });
 		}
 
 		iterator erase(const_iterator position) {
-			const pointer p = const_cast<pointer>(const_pointer{ position });
-			std::allocator_traits<Alloc>::destroy(alloc_, p);
-			move(p + 1, p, size_ - (p - firstElemPtr_) - 1);
-			--size_;
-			return iterator{ p };
+			return erase(position, position + 1);
 		}
 
 		iterator erase(const_iterator first, const_iterator last) {
-			const pointer f = const_cast<pointer>(const_pointer{ first });
-			const pointer l = const_cast<pointer>(const_pointer{ last });
-
-			for (pointer it = f; it != l; ++it)
-				std::allocator_traits<Alloc>::destroy(alloc_, it);
-
-			move(l, f, size_ - (l - firstElemPtr_));
-			size_ -= l - f;
-
-			return iterator{ f };
+			move(last, first, size_ - (last - begin()));
+			size_ -= last - first;
+			return begin() + (first - begin());
 		}
 
-		void push_back(const T& x) { emplace_back(x); }
-		void push_back(T&& x) { emplace_back(std::move(x)); }
+		void push_back(bool x) { insert(cend(), x); }
 
 		template <class... Args>
-		void emplace_back(Args&& ... args) { emplace(cend(), std::forward<Args>(args)...); }
+		void emplace_back(Args&& ... args) { push_back(bool{ std::forward<Args>(args)... }); }
 
 		void pop_back() { erase(cend() - 1); }
 
 		void resize(size_type sz) {
 			if (size_ < sz) {
 				inc_cap(sz);
-				pointer it = firstElemPtr_ + sz;
+				iterator it = begin() + sz;
 				for (size_type i = sz - size_; i; --i)
-					std::allocator_traits<Alloc>::construct(alloc_, it++);
+					* it++ = false;
 				size_ = sz;
 			}
 			else if (size_ > sz)
 				erase(cbegin() + sz, cend());
 		}
-		void resize(size_type sz, const T& c) {
+		void resize(size_type sz, bool c) {
 			if (size_ < sz)
 				insert(cbegin() + size_, sz - size_, c);
 			else if (size_ > sz)
@@ -823,6 +809,25 @@ namespace ostl {
 		}
 
 	private:
+		void move(const_iterator src, const_iterator dest, size_type cnt) {
+			const difference_type d = dest - src;
+			if (d == 0 || cnt == 0) return;
+			if (d > 0) {
+				inc_cap(size_ + d);
+				for (size_type i = src - begin() + cnt - 1; cnt--; --i)
+					(*this)[i + d] = static_cast<const vector&>(*this)[i];
+			}
+			else {
+				for (size_type i = src - begin(); cnt--; ++i)
+					(*this)[i + d] = static_cast<const vector&>(*this)[i];
+			}
+		}
+
+		void inc_cap(size_type min) {
+			if (min > vec_.size() * _nBit)
+				vec_.insert(vec_.end(), (min - vec_.size() * _nBit + _nBit - 1) / _nBit, 0);
+		}
+
 		vector<_T, Alloc> vec_;
 		size_type size_ = 0;
 	};
