@@ -615,7 +615,7 @@ namespace ostl {
 			iterator(_T* firstElemPtr, size_type idx) :const_iterator{ firstElemPtr, idx } {}
 
 			[[nodiscard]] reference operator*() const { return { *ptr, bitOffset }; }
-			[[nodiscard]] reference operator[](difference_type n) const { return { ptr[n / _nBit], (bitOffset + n) % _nBit }; }
+			[[nodiscard]] reference operator[](difference_type n) const { return reference(ptr[n / _nBit], (bitOffset + n) % _nBit); }
 			iterator& operator++() { return *this += 1; }
 			iterator operator++(int) { iterator it = *this; ++* this; return it; }
 			iterator& operator--() { return *this -= 1; }
@@ -648,7 +648,7 @@ namespace ostl {
 
 		vector(size_type n, bool value, const Alloc& alloc = Alloc{})
 			:vec_{ (n + (_nBit - 1)) / _nBit, 0 - value, alloc }, size_{ n }
-		{ vec_.back() = ((_T)value << n - _nBit * (vec_.size() - 1)) - 1; }
+		{ vec_.back() = ((_T)value << (n - _nBit * (vec_.size() - 1))) - 1; }
 
 		explicit vector(size_type n, const Alloc& alloc = Alloc{})
 			:vec_{ (n + (_nBit - 1)) / _nBit, alloc }, size_{ n } { }
@@ -657,7 +657,7 @@ namespace ostl {
 			std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category>
 			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
 		vector(InputIt first, InputIt last, const Alloc& alloc = Alloc{})
-			:size_{ std::distance(first, last) }
+			:size_{ static_cast<size_type>(std::distance(first, last)) }
 		{
 			const size_type s = (size_ + (_nBit - 1)) / _nBit;
 			vec_.reserve(s);
@@ -671,8 +671,8 @@ namespace ostl {
 
 		vector(const vector&) = default;
 		vector(const vector& x, const Alloc& alloc) :vec_{ x.vec_, alloc }, size_{ x.size_ } {}
-		vector(vector&& x) noexcept :vec_{ std::move(x) }, size_{ x.size_ } { x.size_ = 0; }
-		vector(vector&& x, const Alloc& alloc) :vec_{ std::move(x), alloc }, size_{ x.size_ } { x.size_ = 0; }
+		vector(vector&& x) noexcept :vec_{ std::move(x.vec_) }, size_{ x.size_ } { x.size_ = 0; }
+		vector(vector&& x, const Alloc& alloc) :vec_{ std::move(x.vec_), alloc }, size_{ x.size_ } { x.size_ = 0; }
 		vector(std::initializer_list<bool> init, const Alloc& alloc = Alloc{}) :vector{ init.begin(), init.end(), alloc } {}
 
 		vector& operator=(const vector&) = default;
@@ -695,7 +695,7 @@ namespace ostl {
 			|| std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::iterator_category> >>
 		void assign(InputIt first, InputIt last) { *this = vector(first, last, vec_.get_allocator()); }
 
-		void assign(std::initializer_list<T> init) { *this = vector(init, vec_.get_allocator()); }
+		void assign(std::initializer_list<bool> init) { *this = vector(init, vec_.get_allocator()); }
 
 		[[nodiscard]] allocator_type get_allocator() const noexcept { return vec_.get_allocator(); }
 
@@ -709,12 +709,12 @@ namespace ostl {
 		[[nodiscard]] const_reference back() const { return end()[-1]; }
 
 		[[nodiscard]] iterator                begin() noexcept { return { vec_.data(), 0 }; }
-		[[nodiscard]] const_iterator          begin() const noexcept { return { vec_.data(), 0 }; }
-		[[nodiscard]] const_iterator          cbegin() const noexcept { return { vec_.data(), 0 }; }
+		[[nodiscard]] const_iterator          begin() const noexcept { return cbegin(); }
+		[[nodiscard]] const_iterator          cbegin() const noexcept { return { const_cast<_T*>(vec_.data()), 0 }; }
 
 		[[nodiscard]] iterator                end() noexcept { return { vec_.data(), size_ - 1 }; }
-		[[nodiscard]] const_iterator          end() const noexcept { return { vec_.data(), size_ - 1 }; }
-		[[nodiscard]] const_iterator          cend() const noexcept { return { vec_.data(), size_ - 1 }; }
+		[[nodiscard]] const_iterator          end() const noexcept { return cend(); }
+		[[nodiscard]] const_iterator          cend() const noexcept { return { const_cast<_T*>(vec_.data()), size_ - 1 }; }
 
 		[[nodiscard]] reverse_iterator        rbegin() noexcept { return reverse_iterator{ end() }; }
 		[[nodiscard]] const_reverse_iterator  rbegin() const noexcept { return const_reverse_iterator{ end() }; }
@@ -758,7 +758,7 @@ namespace ostl {
 		}
 
 		iterator insert(const_iterator position, std::initializer_list<bool> list) {
-			insert(position, list.begin(), list.end());
+			return insert(position, list.begin(), list.end());
 		}
 
 		template <class... Args>
@@ -830,7 +830,7 @@ namespace ostl {
 				vec_.insert(vec_.end(), (min - vec_.size() * _nBit + _nBit - 1) / _nBit, 0);
 		}
 
-		vector<_T, std::allocator_traits<Alloc>::rebind_alloc<_T>> vec_;
+		vector<_T, typename std::allocator_traits<Alloc>::template rebind_alloc<_T>> vec_;
 		size_type size_ = 0;
 	};
 }
