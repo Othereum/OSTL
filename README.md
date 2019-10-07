@@ -1,6 +1,6 @@
 # OSTL
 
-OSTL stands for Othereum Standard Template Library. It was implemented for study purpose.
+OSTL stands for Othereum's Standard Template Library.
 
 ## Implemented
 
