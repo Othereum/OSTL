@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "OSTL/vector.h"
+#include "../include/ostl/vector.h"
 
 template <typename T>
 void AssertAllEqual(const ostl::vector<T>& actual, std::initializer_list<T> expected) {
@@ -17,23 +17,22 @@ void AssertAllEqual(const ostl::vector<T>& actual, const T& expected) {
 }
 
 TEST(Vector, Constructor) {
-	std::initializer_list<std::string> init{ "the", "frogurt", "is", "also", "cursed" };
+	const std::initializer_list<std::string> init{ "the", "frogurt", "is", "also", "cursed" };
 	ostl::vector<std::string> words1(init);
 	AssertAllEqual(words1, init);
 
-	ostl::vector<std::string> words2(words1.begin(), words1.end());
+	const ostl::vector<std::string> words2(words1.begin(), words1.end());
 	AssertAllEqual(words2, init);
 
-	ostl::vector<std::string> words3(words1);
+	const auto words3(words1);
 	AssertAllEqual(words3, init);
 
-	ostl::vector<std::string> words4(5, "Mo");
+	const ostl::vector<std::string> words4(5, "Mo");
 	AssertAllEqual<std::string>(words4, "Mo");
 }
 
 TEST(Vector, Assign) {
 	const auto list = { 3, 1, 4, 6, 5, 9 };
-	const auto expected_size = list.size();
 
 	ostl::vector<int> nums1(list);
 	ostl::vector<int> nums2;
@@ -75,9 +74,10 @@ TEST(Vector, Iterator) {
 	ostl::vector<std::string> fruits{ "orange","apple","raspberry" };
 	ostl::vector<char> empty;
 
-	int sum = 0;
-	for (auto it = ints.cbegin(); it != ints.cend(); ++it)
-		sum += *it;
+	auto sum = 0;
+	for (auto it : ints)
+		sum += it;
+	
 	ASSERT_EQ(sum, 31);
 	ASSERT_EQ(*fruits.begin(), "orange");
 	ASSERT_EQ(empty.begin(), empty.end());
@@ -90,7 +90,7 @@ TEST(Vector, Iterator) {
 	const auto rb = ints.crbegin(), rb2 = rb;
 	ASSERT_EQ(rb, rb2);
 
-	ostl::vector revints(ints.crbegin(), ints.crend());
+	const ostl::vector revints(ints.crbegin(), ints.crend());
 	AssertAllEqual(revints, { 16,8,4,2,1 });
 }
 
