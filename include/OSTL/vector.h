@@ -168,9 +168,7 @@ namespace ostl
 		using reverse_iterator = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-		vector() noexcept(noexcept(Alloc{}))
-		{
-		}
+		vector() = default;
 
 		explicit vector(const Alloc& alloc) noexcept : alloc_{alloc}
 		{
