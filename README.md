@@ -4,9 +4,9 @@ OSTL stands for Othereum's Standard Template Library.
 
 ## Implemented
 
-## Implementing
-
 - vector
+
+## Implementing
 
 ## Will be implemented
 
