@@ -913,10 +913,9 @@ namespace ostl
 		{
 		}
 
-		vector(size_type n, const bool value, const Alloc& alloc = Alloc{})
-			: vec_{(n + (n_bit - 1)) / n_bit, 0 - value, alloc}, size_{n}
+		vector(const size_type n, const bool value, const Alloc& alloc = Alloc{})
+			: vec_((n + (n_bit - 1)) / n_bit, 0 - value, alloc), size_{n}
 		{
-			vec_.back() = (static_cast<int_type>(value) << (n - n_bit * (vec_.size() - 1))) - 1;
 		}
 
 		explicit vector(const size_type n, const Alloc& alloc = Alloc{})
