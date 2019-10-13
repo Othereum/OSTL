@@ -1134,10 +1134,12 @@ namespace ostl
 		void move(const_iterator src, const_iterator dest, size_type cnt)
 		{
 			const difference_type d = dest - src;
+			if (d > 0) inc_cap(size_ + d);
+				
 			if (d == 0 || cnt == 0) return;
+			
 			if (d > 0)
 			{
-				inc_cap(size_ + d);
 				for (size_type i = src - begin() + cnt - 1; cnt--; --i)
 					(*this)[i + d] = (*this)[i];
 			}
