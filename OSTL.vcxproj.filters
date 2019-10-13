@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\ostl\vector.h">
+    <ClInclude Include="include\OSTL\vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

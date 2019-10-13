@@ -692,28 +692,28 @@ namespace ostl
 		using const_reference = bool;
 
 	private:
-		using t = unsigned;
-		using nbt = unsigned char;
-		static constexpr nbt n_bit = sizeof t * 8;
+		using int_type = size_t;
+		using num_bit_type = unsigned char;
+		static constexpr num_bit_type n_bit = sizeof int_type * 8;
 
 	public:
 		class iterator;
-
+		
 		class reference
 		{
 		public:
-			[[nodiscard]]operator bool() const noexcept { return ref_ >> bit_offset_ & 1; }
+			[[nodiscard]] operator bool() const noexcept { return ref_ >> bit_offset_ & 1; }
 
 			~reference() = default;
-			reference(const reference&) = default;
-			reference(reference&&) = default;
+			reference(const reference&) = delete;
+			reference(reference&&) = delete;
 
-			reference& operator=(reference&&) = delete;
-			reference& operator=(const reference& x) noexcept { return *this = bool{x}; }
+			reference& operator=(reference&& x) noexcept { return *this = static_cast<bool>(x); }
+			reference& operator=(const reference& x) noexcept { return *this = static_cast<bool>(x); }
 
 			reference& operator=(const bool x) noexcept
 			{
-				const t b = 1 << bit_offset_;
+				const int_type b = 1 << bit_offset_;
 				if (x) ref_ |= b;
 				else ref_ &= ~b;
 				return *this;
@@ -722,15 +722,16 @@ namespace ostl
 			void flip() noexcept { *this = !*this; }
 
 		private:
-			friend vector<bool, Alloc>;
+			friend vector;
 			friend iterator;
 
-			reference(t& ref, const nbt bit_offset) noexcept : ref_{ref}, bit_offset_{bit_offset}
+			reference(int_type& ref, const num_bit_type bit_offset) noexcept
+				:ref_{ref}, bit_offset_{bit_offset}
 			{
 			}
 
-			t& ref_;
-			const nbt bit_offset_;
+			int_type& ref_;
+			const num_bit_type bit_offset_;
 		};
 
 		class const_iterator
@@ -744,23 +745,26 @@ namespace ostl
 
 			const_iterator() = default;
 
-			const_iterator(t* first_elem_ptr, const size_type idx)
+			const_iterator(int_type* first_elem_ptr, const size_type idx)
 				: ptr_{first_elem_ptr + idx / n_bit}, bit_offset_{idx % n_bit}
 			{
 			}
 
-			[[nodiscard]] bool operator*() const { return *ptr_ << bit_offset_ & 1; }
+			[[nodiscard]] bool operator*() const
+			{
+				return *ptr_ >> bit_offset_ & 1;
+			}
 
 			[[nodiscard]] bool operator[](const difference_type n) const
 			{
-				return ptr_[n / n_bit] << (bit_offset_ + n) % n_bit & 1;
+				return *((*this)+n);
 			}
 
 			const_iterator& operator++() { return *this += 1; }
 
 			const_iterator operator++(int)
 			{
-				const_iterator it = *this;
+				const auto it = *this;
 				++*this;
 				return it;
 			}
@@ -769,7 +773,7 @@ namespace ostl
 
 			const_iterator operator--(int)
 			{
-				const_iterator it = *this;
+				const auto it = *this;
 				--*this;
 				return it;
 			}
@@ -782,15 +786,15 @@ namespace ostl
 				return *this;
 			}
 
-			[[nodiscard]] const_iterator operator+(difference_type n) const
+			[[nodiscard]] const_iterator operator+(const difference_type n) const
 			{
 				const_iterator it = *this;
 				it += n;
 				return it;
 			}
 
-			const_iterator& operator-=(difference_type n) { return *this += -n; }
-			[[nodiscard]] const_iterator operator-(difference_type n) const { return *this + -n; }
+			const_iterator& operator-=(const difference_type n) { return *this += -n; }
+			[[nodiscard]] const_iterator operator-(const difference_type n) const { return *this + -n; }
 
 			[[nodiscard]] difference_type operator-(const const_iterator& rhs) const
 			{
@@ -814,8 +818,8 @@ namespace ostl
 			[[nodiscard]] bool operator<=(const const_iterator& rhs) const { return !(*this > rhs); }
 
 		protected:
-			t* ptr_ = nullptr;
-			nbt bit_offset_ = 0;
+			int_type* ptr_ = nullptr;
+			num_bit_type bit_offset_ = 0;
 		};
 
 		class iterator : public const_iterator
@@ -824,12 +828,12 @@ namespace ostl
 			using iterator_category = std::random_access_iterator_tag;
 			using value_type = bool;
 			using difference_type = difference_type;
+			using reference = typename vector::reference;
 			using pointer = reference*;
-			using reference = reference;
 
 			iterator() = default;
 
-			iterator(t* first_elem_ptr, size_type idx) : const_iterator{first_elem_ptr, idx}
+			iterator(int_type* first_elem_ptr, size_type idx) : const_iterator{first_elem_ptr, idx}
 			{
 			}
 
@@ -912,7 +916,7 @@ namespace ostl
 		vector(size_type n, const bool value, const Alloc& alloc = Alloc{})
 			: vec_{(n + (n_bit - 1)) / n_bit, 0 - value, alloc}, size_{n}
 		{
-			vec_.back() = (static_cast<t>(value) << (n - n_bit * (vec_.size() - 1))) - 1;
+			vec_.back() = (static_cast<int_type>(value) << (n - n_bit * (vec_.size() - 1))) - 1;
 		}
 
 		explicit vector(const size_type n, const Alloc& alloc = Alloc{})
@@ -932,8 +936,8 @@ namespace ostl
 			vec_.reserve(s);
 			for (size_type i = 0; i < s; ++i)
 			{
-				t bits = 0;
-				for (nbt j = 0; j < n_bit && first != last; ++j)
+				int_type bits = 0;
+				for (num_bit_type j = 0; j < n_bit && first != last; ++j)
 					bits |= *first++ << j;
 				vec_.push_back(bits);
 			}
@@ -948,7 +952,8 @@ namespace ostl
 		vector(vector&& x) noexcept : vec_{std::move(x.vec_)}, size_{x.size_} { x.size_ = 0; }
 		vector(vector&& x, const Alloc& alloc) : vec_{std::move(x.vec_), alloc}, size_{x.size_} { x.size_ = 0; }
 
-		vector(const std::initializer_list<bool> init, const Alloc& alloc = Alloc{}) : vector{init.begin(), init.end(), alloc}
+		vector(const std::initializer_list<bool> init, const Alloc& alloc = Alloc{})
+			:vector{init.begin(), init.end(), alloc}
 		{
 		}
 
@@ -968,7 +973,7 @@ namespace ostl
 
 		vector& operator=(std::initializer_list<bool> init) { return *this = vector(init, vec_.get_allocator()); }
 
-		void assign(const size_type n, bool t) { *this = vector(n, t, vec_.get_allocator()); }
+		void assign(const size_type n, bool int_type) { *this = vector(n, int_type, vec_.get_allocator()); }
 
 		template <class InputIt, class = std::enable_if_t<
 			          std::is_base_of_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::
@@ -1002,11 +1007,11 @@ namespace ostl
 
 		[[nodiscard]] iterator begin() noexcept { return {vec_.data(), 0}; }
 		[[nodiscard]] const_iterator begin() const noexcept { return cbegin(); }
-		[[nodiscard]] const_iterator cbegin() const noexcept { return {const_cast<t*>(vec_.data()), 0}; }
+		[[nodiscard]] const_iterator cbegin() const noexcept { return {const_cast<int_type*>(vec_.data()), 0}; }
 
-		[[nodiscard]] iterator end() noexcept { return {vec_.data(), size_ - 1}; }
+		[[nodiscard]] iterator end() noexcept { return {vec_.data(), size_}; }
 		[[nodiscard]] const_iterator end() const noexcept { return cend(); }
-		[[nodiscard]] const_iterator cend() const noexcept { return {const_cast<t*>(vec_.data()), size_ - 1}; }
+		[[nodiscard]] const_iterator cend() const noexcept { return {const_cast<int_type*>(vec_.data()), size_ - 1}; }
 
 		[[nodiscard]] reverse_iterator rbegin() noexcept { return reverse_iterator{end()}; }
 		[[nodiscard]] const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator{end()}; }
@@ -1119,9 +1124,9 @@ namespace ostl
 		noexcept(std::allocator_traits<Alloc>::propagate_on_container_swap::value
 			|| std::allocator_traits<Alloc>::is_always_equal::value)
 		{
-			vector t{std::move(other)};
+			vector int_type{std::move(other)};
 			other = std::move(*this);
-			*this = std::move(t);
+			*this = std::move(int_type);
 		}
 
 	private:
@@ -1133,12 +1138,12 @@ namespace ostl
 			{
 				inc_cap(size_ + d);
 				for (size_type i = src - begin() + cnt - 1; cnt--; --i)
-					(*this)[i + d] = static_cast<const vector&>(*this)[i];
+					(*this)[i + d] = (*this)[i];
 			}
 			else
 			{
 				for (size_type i = src - begin(); cnt--; ++i)
-					(*this)[i + d] = static_cast<const vector&>(*this)[i];
+					(*this)[i + d] = (*this)[i];
 			}
 		}
 
@@ -1148,7 +1153,7 @@ namespace ostl
 				vec_.insert(vec_.end(), (min - vec_.size() * n_bit + n_bit - 1) / n_bit, 0);
 		}
 
-		vector<t, typename std::allocator_traits<Alloc>::template rebind_alloc<t>> vec_;
+		vector<int_type, typename std::allocator_traits<Alloc>::template rebind_alloc<int_type>> vec_;
 		size_type size_ = 0;
 	};
 }
