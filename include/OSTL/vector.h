@@ -1038,17 +1038,18 @@ namespace ostl
 			size_ = 0;
 		}
 
-		iterator insert(const_iterator position, bool x) { return insert(position, 1, x); }
+		iterator insert(const const_iterator position, const bool x) { return insert(position, 1, x); }
 
 		iterator insert(const_iterator position, size_type n, bool x)
 		{
-			iterator it = begin();
-			const difference_type d = position - it;
+			const difference_type d = position - begin();
 			move(position, position + n, size_ - d);
-			it += d;
-			const iterator ret = it;
-			while (n--) *it++ = x;
-			return it;
+			
+			size_ += n;
+			
+			const auto ret = begin() + d;
+			for (auto it = ret; n--;) *it++ = x;
+			return ret;
 		}
 
 		template <class InputIt, class = std::enable_if_t<
@@ -1058,14 +1059,15 @@ namespace ostl
 			                            iterator_category>>>
 		iterator insert(const_iterator position, InputIt first, InputIt last)
 		{
-			iterator it = begin();
-			const difference_type d = position - it;
+			const difference_type d = position - begin();
 			difference_type n = std::distance(first, last);
 			move(position, position + n, size_ - d);
-			it += d;
-			const iterator ret = it;
-			while (n--) *it++ = *first++;
-			return it;
+			
+			size_ += n;
+			
+			const auto ret = begin() + d;
+			for (auto it = ret; n--;) *it++ = *first++;
+			return ret;
 		}
 
 		iterator insert(const_iterator position, std::initializer_list<bool> list)
