@@ -1010,7 +1010,7 @@ namespace ostl
 
 		[[nodiscard]] iterator end() noexcept { return {vec_.data(), size_}; }
 		[[nodiscard]] const_iterator end() const noexcept { return cend(); }
-		[[nodiscard]] const_iterator cend() const noexcept { return {const_cast<int_type*>(vec_.data()), size_ - 1}; }
+		[[nodiscard]] const_iterator cend() const noexcept { return {const_cast<int_type*>(vec_.data()), size_}; }
 
 		[[nodiscard]] reverse_iterator rbegin() noexcept { return reverse_iterator{end()}; }
 		[[nodiscard]] const_reverse_iterator rbegin() const noexcept { return const_reverse_iterator{end()}; }

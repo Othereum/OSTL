@@ -263,9 +263,9 @@ TEST(VectorBool, ElementAccess) {
 }
 
 TEST(VectorBool, Iterator) {
-	ostl::vector ints{ false, false, true, false, true };
-	ostl::vector fruits{ false, true, true, false };
-	ostl::vector<bool> empty;
+	const ostl::vector ints{ false, false, true, false, true };
+	const ostl::vector fruits{ false, true, true, false };
+	const ostl::vector<bool> empty;
 
 	ASSERT_EQ(*fruits.begin(), false);
 	ASSERT_EQ(empty.begin(), empty.end());
@@ -275,11 +275,11 @@ TEST(VectorBool, Iterator) {
 	ASSERT_EQ(*(ints.crend() - 1), false);
 	ASSERT_EQ(empty.rbegin(), empty.rend());
 
-	auto rb = ints.crbegin(), rb2 = rb;
+	const auto rb = ints.crbegin(), rb2 = rb;
 	ASSERT_EQ(rb, rb2);
 
 	const ostl::vector revints(ints.crbegin(), ints.crend());
-	AssertAllEqual(revints, { false, false, true, false, true });
+	AssertAllEqual(revints, { true, false, true, false, false });
 }
 
 TEST(VectorBool, Insert) {
