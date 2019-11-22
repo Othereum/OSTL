@@ -38,7 +38,7 @@ namespace ostl
 	{
 		virtual R operator()(Args...) = 0;
 		virtual ~callable_base() = default;
-		virtual std::unique_ptr<callable_base> copy() const = 0;
+		virtual std::unique_ptr<callable_base> clone() const = 0;
 	};
 	
 	template <class R, class... Args>
@@ -47,7 +47,7 @@ namespace ostl
 	{
 		explicit callable(F&& f) :f_{std::forward<F>(f)} {}
 		R operator()(Args... args) override { return f_(std::forward<Args>(args)...); }
-		std::unique_ptr<callable_base> copy() const override { return std::make_unique<callable>(*this); }
+		std::unique_ptr<callable_base> clone() const override { return std::make_unique<callable>(*this); }
 
 	private:
 		F f_;
@@ -56,7 +56,7 @@ namespace ostl
 	template <class R, class... Args>
 	function<R(Args...)>::function(const function& other)
 	{
-		
+		fn_ = other.fn_->clone();
 	}
 
 	template <class R, class ... Args>
