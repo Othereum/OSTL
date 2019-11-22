@@ -18,5 +18,8 @@
     <ClInclude Include="include\OSTL\vector.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="functional.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
