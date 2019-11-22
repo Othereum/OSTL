@@ -12,6 +12,9 @@ namespace ostl
 	template <class R, class... Args>
 	class function<R(Args...)>
 	{
+		template <class F>
+		using enable_if_callable = std::enable_if_t<std::is_convertible_v<decltype(std::declval<F>()()), R>>;
+
 	public:
 		using result_type = R;
 
@@ -20,17 +23,48 @@ namespace ostl
 		function(const function& other);
 		function(function&&) noexcept = default;
 		
-		template <class F>
+		template <class F, class = enable_if_callable<F>>
 		function(F f);
 
-		R operator()(Args... args);
+		~function() = default;
 
-	private:
+		function& operator=(const function& other) { function{other}.swap(*this); return *this; }
+		function& operator=(function&&) = default;
+		function& operator=(std::nullptr_t) noexcept { f_.release(); return *this; }
+
+		template <class F, class = enable_if_callable<F>>
+		function& operator=(F&& f) { function{std::forward<F>(f)}.swap(*this); return *this; }
+
+		template <class F>
+		function& operator=(std::reference_wrapper<F> f) noexcept { function{f}.swap(*this); return *this; }
+
+		void swap(function& other) noexcept { f_.swap(other.f_); }
+
+		explicit operator bool() const noexcept { return !!f_; }
+
+		R operator()(Args... args) const;
+
+		[[nodiscard]] const std::type_info& target_type() const noexcept { return !!*this ? typeid(*f_) : typeid(void); }
+
+		template <class T>
+		T* target() noexcept { return dynamic_cast<T*>(f_.get()); }
+
+		template <class T>
+		const T* target() const noexcept { return dynamic_cast<const T*>(f_.get()); }
+
+	private:		
 		template <class F>
 		struct callable;
 		struct callable_base;
-		
-		std::unique_ptr<callable_base> fn_;
+
+		// TODO: small object optimization for function pointer and std::reference_wrapper
+		std::unique_ptr<callable_base> f_;
+	};
+
+	class bad_function_call : public std::exception
+	{
+		bad_function_call() noexcept {}
+		[[nodiscard]] char const* what() const noexcept override { return "bad function call"; }
 	};
 
 	template <class R, class... Args>
@@ -56,18 +90,20 @@ namespace ostl
 	template <class R, class... Args>
 	function<R(Args...)>::function(const function& other)
 	{
-		fn_ = other.fn_->clone();
+		f_ = other.f_->clone();
 	}
 
-	template <class R, class ... Args>
-	template <class F>
+	template <class R, class... Args>
+	template <class F, class>
 	function<R(Args...)>::function(F f)
+		:f_{std::make_unique<callable<F>>(std::move(f))}
 	{
 	}
 
 	template <class R, class... Args>
-	R function<R(Args...)>::operator()(Args... args)
+	R function<R(Args...)>::operator()(Args... args) const
 	{
-		return (*fn_)(std::forward<Args>(args)...);
+		if (!*this) throw bad_function_call{};
+		return (*f_)(std::forward<Args>(args)...);
 	}
 }
