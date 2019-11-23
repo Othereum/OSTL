@@ -6,6 +6,8 @@
 
 namespace ostl
 {
+	using nullptr_t = decltype(nullptr);
+	
 	template <class>
 	class function;
 
@@ -19,7 +21,7 @@ namespace ostl
 		using result_type = R;
 
 		function() noexcept = default;
-		function (std::nullptr_t) noexcept {}
+		function(nullptr_t) noexcept {}
 		function(const function& other);
 		function(function&&) noexcept = default;
 
@@ -36,7 +38,7 @@ namespace ostl
 
 		function& operator=(function&&) = default;
 
-		function& operator=(std::nullptr_t) noexcept
+		function& operator=(nullptr_t) noexcept
 		{
 			f_.release();
 			return *this;
@@ -87,6 +89,18 @@ namespace ostl
 	{
 		lhs.swap(rhs);
 	}
+
+	template <class R, class... Args>
+	bool operator==(const function<R(Args...)>& f, nullptr_t) noexcept { return !f; }
+
+	template <class R, class... Args>
+	bool operator==(nullptr_t, const function<R(Args...)>& f) noexcept { return !f; }
+
+	template <class R, class... Args>
+	bool operator!=(const function<R(Args...)>& f, nullptr_t) noexcept { return !!f; }
+
+	template <class R, class... Args>
+	bool operator!=(nullptr_t, const function<R(Args...)>& f) noexcept { return !!f; }
 
 	class bad_function_call : public std::exception
 	{
