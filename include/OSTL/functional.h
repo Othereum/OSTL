@@ -3,11 +3,10 @@
 #pragma once
 
 #include <memory>
+#include "cstddef.h"
 
 namespace ostl
 {
-	using nullptr_t = decltype(nullptr);
-	
 	template <class>
 	class function;
 
