@@ -3,6 +3,7 @@
 #pragma once
 
 #include <memory>
+#include <functional>
 #include "cstddef.h"
 
 namespace ostl
@@ -10,11 +11,12 @@ namespace ostl
 	template <class>
 	class function;
 
+	// TODO: member function, small object optimization
 	template <class R, class... Args>
-	class function<R(Args ...)>
+	class function<R(Args...)>
 	{
 		template <class F>
-		using enable_if_callable = std::enable_if_t<std::is_convertible_v<decltype(std::declval<F>()()), R>>;
+		using enable_if_callable = std::enable_if_t<std::is_convertible_v<decltype(std::invoke(std::declval<F>(), std::declval<Args>()...)), R>>;
 
 	public:
 		using result_type = R;
@@ -65,7 +67,7 @@ namespace ostl
 
 		explicit operator bool() const noexcept { return !!f_; }
 
-		R operator()(Args ... args) const;
+		R operator()(Args... args) const;
 
 		[[nodiscard]] const std::type_info& target_type() const noexcept
 		{
@@ -87,7 +89,7 @@ namespace ostl
 	};
 
 	template <class R, class... Args>
-	void swap(function<R(Args ...)>& lhs, function<R(Args ...)>& rhs) noexcept
+	void swap(function<R(Args...)>& lhs, function<R(Args...)>& rhs) noexcept
 	{
 		lhs.swap(rhs);
 	}
@@ -106,6 +108,7 @@ namespace ostl
 
 	class bad_function_call : public std::exception
 	{
+	public:
 		bad_function_call() noexcept
 		{
 		}
@@ -114,43 +117,43 @@ namespace ostl
 	};
 
 	template <class R, class... Args>
-	struct function<R(Args ...)>::callable_base
+	struct function<R(Args...)>::callable_base
 	{
-		virtual R operator()(Args ...) = 0;
+		virtual R operator()(Args...) = 0;
 		virtual ~callable_base() = default;
 		virtual std::unique_ptr<callable_base> clone() const = 0;
 	};
 
 	template <class R, class... Args>
 	template <class F>
-	struct function<R(Args ...)>::callable final : callable_base
+	struct function<R(Args...)>::callable final : callable_base
 	{
 		explicit callable(F&& f) : f_{std::forward<F>(f)}
 		{
 		}
 
-		R operator()(Args ... args) override { return f_(std::forward<Args>(args)...); }
-		std::unique_ptr<callable_base> clone() const override { return std::make_unique<callable>(*this); }
+		R operator()(Args... args) override { return f_(std::forward<Args>(args)...); }
+		[[nodiscard]] std::unique_ptr<callable_base> clone() const override { return std::make_unique<callable>(*this); }
 
 	private:
 		F f_;
 	};
 
 	template <class R, class... Args>
-	function<R(Args ...)>::function(const function& other)
+	function<R(Args...)>::function(const function& other)
 	{
 		f_ = other.f_->clone();
 	}
 
 	template <class R, class... Args>
 	template <class F, class>
-	function<R(Args ...)>::function(F f)
+	function<R(Args...)>::function(F f)
 		: f_{std::make_unique<callable<F>>(std::move(f))}
 	{
 	}
 
 	template <class R, class... Args>
-	R function<R(Args ...)>::operator()(Args ... args) const
+	R function<R(Args...)>::operator()(Args... args) const
 	{
 		if (!*this) throw bad_function_call{};
 		return (*f_)(std::forward<Args>(args)...);

@@ -79,5 +79,8 @@ namespace ostl
 	}
 }
 
+#undef NULL
 #define NULL nullptr
+
+#undef offsetof
 #define offsetof(type, member) (::ostl::size_t(&reinterpret_cast<const char volatile&>(((type*)0)->member)))
