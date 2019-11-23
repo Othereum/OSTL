@@ -21,7 +21,7 @@
     <ClInclude Include="include\OSTL\functional.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="cstddef.h">
+    <ClInclude Include="include\OSTL\cstddef.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

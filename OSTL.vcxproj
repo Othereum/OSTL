@@ -110,7 +110,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="cstddef.h" />
+    <ClInclude Include="include\OSTL\cstddef.h" />
     <ClInclude Include="include\OSTL\functional.h" />
     <ClInclude Include="include\OSTL\vector.h" />
   </ItemGroup>
