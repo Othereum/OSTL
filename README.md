@@ -1,24 +1,8 @@
 # OSTL
 
-OSTL stands for Othereum's Standard Template Library.
+직접 구현해보는 C++ 표준 템플릿 라이브러리 (STL) 입니다.
 
-## Implemented
+## 목록
 
-- vector
-
-## Implementing
-
-## Will be implemented
-
-- algorithm
-- array
-- deque
-- forward_list
-- list
-- map
-- queue
-- set
-- stack
-- string
-- unordered_map
-- unordered_set
+- **\<vector\>** - 100% 완성
+- **function** - 멤버함수 미지원
