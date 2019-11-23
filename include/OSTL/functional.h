@@ -20,7 +20,11 @@ namespace ostl
 		using result_type = R;
 
 		function() noexcept = default;
-		function(nullptr_t) noexcept {}
+
+		function(nullptr_t) noexcept
+		{
+		}
+
 		function(const function& other);
 		function(function&&) noexcept = default;
 
@@ -79,7 +83,6 @@ namespace ostl
 		struct callable;
 		struct callable_base;
 
-		// TODO: small object optimization for function pointer and std::reference_wrapper
 		std::unique_ptr<callable_base> f_;
 	};
 
