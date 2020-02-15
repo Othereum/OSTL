@@ -4,5 +4,6 @@
 
 ## 목록
 
-- **\<vector\>** - 100% 완성
-- **function** - 멤버함수 미지원
+- **vector** (with vector\<bool> specialization)
+- **function** (TODO: member function, small object optimization)
+- **string** - W.I.P (with short string optimization)
