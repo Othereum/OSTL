@@ -713,7 +713,7 @@ namespace ostl
 
 			reference& operator=(const bool x) noexcept
 			{
-				const int_type b = 1 << bit_offset_;
+				const auto b = int_type(1) << bit_offset_;
 				if (x) ref_ |= b;
 				else ref_ &= ~b;
 				return *this;
