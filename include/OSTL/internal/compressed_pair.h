@@ -10,6 +10,7 @@ namespace ostl::internal
 	template <class A, class B>
 	struct compressed_pair<A, B, true>
 	{
+		compressed_pair(): first{}, second{} {}
 		compressed_pair(const A& a, const B& b): first{a}, second{b} {}
 		compressed_pair(const A& a, B&& b): first{a}, second{std::move(b)} {}
 		compressed_pair(A&& a, const B& b): first{std::move(a)}, second{b} {}
@@ -25,6 +26,7 @@ namespace ostl::internal
 	template <class A, class B>
 	struct compressed_pair<A, B, false>
 	{
+		compressed_pair(): first{}, second{} {}
 		compressed_pair(const A& a, const B& b): first{a}, second{b} {}
 		compressed_pair(const A& a, B&& b): first{a}, second{std::move(b)} {}
 		compressed_pair(A&& a, const B& b): first{std::move(a)}, second{b} {}

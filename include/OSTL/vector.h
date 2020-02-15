@@ -26,7 +26,7 @@ namespace ostl
 		using reverse_iterator = std::reverse_iterator<iterator>;
 		using const_reverse_iterator = std::reverse_iterator<const_iterator>;
 
-		vector(): r_{nullptr, allocator_type{}} {}
+		vector() = default;
 
 		explicit vector(const Alloc& alloc) noexcept : r_{nullptr, alloc}
 		{
