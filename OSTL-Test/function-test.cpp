@@ -1,5 +1,5 @@
-#include "pch.h"
-#include "../include/OSTL/functional.h"
+#include "gtest/gtest.h"
+#include "OSTL/functional.h"
 #include <iostream>
 
 struct Foo

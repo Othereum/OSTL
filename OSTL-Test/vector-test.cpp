@@ -1,5 +1,5 @@
-#include "pch.h"
-#include "../include/OSTL/vector.h"
+#include "gtest/gtest.h"
+#include "OSTL/vector.h"
 
 template <typename T>
 void AssertAllEqual(const ostl::vector<T>& actual, std::initializer_list<T> expected) {
