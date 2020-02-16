@@ -85,5 +85,9 @@ namespace ostl
 		};
 
 		internal::compressed_pair<rep, allocator_type> r_;
+
+	public:
+		basic_string() noexcept(noexcept(allocator_type{})): basic_string{allocator_type{}} {}
+		explicit basic_string(const allocator_type& alloc) noexcept: r_{{}, alloc} {}
 	};
 }
