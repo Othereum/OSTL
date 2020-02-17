@@ -87,7 +87,11 @@ namespace ostl
 		internal::compressed_pair<rep, allocator_type> r_;
 
 	public:
+		static constexpr auto npos = size_type(-1);
+		
 		basic_string() noexcept(noexcept(allocator_type{})): basic_string{allocator_type{}} {}
 		explicit basic_string(const allocator_type& alloc) noexcept: r_{{}, alloc} {}
+		basic_string(size_type count, value_type ch, const allocator_type& alloc = allocator_type{});
+		basic_string(const basic_string& other, size_type pos, size_type count = npos, const allocator_type& alloc = allocator_type{});
 	};
 }
