@@ -7,3 +7,4 @@
 - **vector** (with vector\<bool> specialization)
 - **function** (TODO: member function, small object optimization)
 - **string** - W.I.P (with short string optimization)
+- **memory** - W.I.P (Currently working on shared_ptr)
