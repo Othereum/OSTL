@@ -28,20 +28,22 @@ namespace ostl
 
 		vector() = default;
 
-		explicit vector(const Alloc& alloc) noexcept : r_{nullptr, alloc}
+		explicit vector(const Alloc& alloc) noexcept : r_{internal::ZeroThen{}, alloc}
 		{
 		}
 
 		vector(size_type n, const T& value, const Alloc& alloc = Alloc{})
-			: r_{r_.second.allocate(n), alloc}, capacity_{n}, size_{n}
+			: r_{internal::ZeroThen{}, alloc}, capacity_{n}, size_{n}
 		{
+			r_.first = std::allocator_traits<Alloc>::allocate(r_.second, n);
 			for (size_type i = 0; i < size_; ++i)
 				std::allocator_traits<Alloc>::construct(r_.second, r_.first + i, value);
 		}
 
 		explicit vector(size_type n, const Alloc& alloc = Alloc{})
-			: r_{r_.second.allocate(n), alloc}, capacity_{n}, size_{n}
+			: r_{internal::ZeroThen{}, alloc}, capacity_{n}, size_{n}
 		{
+			r_.first = std::allocator_traits<Alloc>::allocate(r_.second, n);
 			for (size_type i = 0; i < size_; ++i)
 				std::allocator_traits<Alloc>::construct(r_.second, r_.first + i);
 		}
@@ -52,7 +54,7 @@ namespace ostl
 			          || std::is_same_v<std::input_iterator_tag, typename std::iterator_traits<InputIt>::
 			                            iterator_category>>>
 		vector(InputIt first, InputIt last, const Alloc& alloc = Alloc{})
-			: r_{nullptr, alloc}
+			: r_{internal::ZeroThen{}, alloc}
 		{
 			reserve(std::distance(first, last));
 			for (InputIt it = first; it != last; ++it)
@@ -60,23 +62,24 @@ namespace ostl
 		}
 
 		vector(const vector& x)
-			: r_{r_.second.allocate(x.size_), x.r_.second}, capacity_{x.size_}, size_{x.size_}
+			: r_{internal::ZeroThen{}, x.r_.second}, capacity_{x.size_}, size_{x.size_}
 		{
-			pointer p = r_.first;
+			pointer p = r_.first = std::allocator_traits<Alloc>::allocate(r_.second, size_);
 			for (const value_type& a : x)
 				std::allocator_traits<Alloc>::construct(r_.second, p++, a);
 		}
 
 		vector(const vector& x, const Alloc& alloc)
-			: r_{r_.second.allocate(x.size_), alloc}, capacity_{x.size_}, size_{x.size_}
+			: r_{internal::ZeroThen{}, alloc}, capacity_{x.size_}, size_{x.size_}
 		{
+			r_.first = std::allocator_traits<Alloc>::allocate(r_.second, size_);
 			pointer p = r_.first;
 			for (const value_type& a : x)
 				std::allocator_traits<Alloc>::construct(r_.second, p++, a);
 		}
 
 		vector(vector&& x) noexcept
-			: r_{x.r_.first, std::move(x.r_.second)}, capacity_{x.capacity_}, size_{x.size_}
+			: r_{internal::OneThen{}, x.r_.first, std::move(x.r_.second)}, capacity_{x.capacity_}, size_{x.size_}
 		{
 			x.r_.first = nullptr;
 			x.capacity_ = 0;
@@ -84,7 +87,7 @@ namespace ostl
 		}
 
 		vector(vector&& x, const Alloc& alloc)
-			: r_{x.r_.first, alloc}, capacity_{x.capacity_}, size_{x.size_}
+			: r_{internal::OneThen{}, x.r_.first, alloc}, capacity_{x.capacity_}, size_{x.size_}
 		{
 			x.r_.first = nullptr;
 			x.capacity_ = 0;
@@ -92,7 +95,7 @@ namespace ostl
 		}
 
 		vector(std::initializer_list<T> init, const Alloc& alloc = Alloc{})
-			: r_{nullptr, alloc}
+			: r_{internal::ZeroThen{}, alloc}
 		{
 			const size_type s = init.size();
 			reserve(s);

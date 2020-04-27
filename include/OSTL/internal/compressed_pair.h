@@ -4,17 +4,64 @@
 
 namespace ostl::internal
 {
+	struct ZeroThen {};
+	struct OneThen {};
+	
 	template <class A, class B, bool = std::is_empty_v<A> || std::is_empty_v<B>>
-	struct compressed_pair;
+	struct CompressedPairImpl;
 
 	template <class A, class B>
-	struct compressed_pair<A, B, true>
+	struct CompressedPairImpl<A, B, true>
 	{
-		compressed_pair(): first{}, second{} {}
-		compressed_pair(const A& a, const B& b): first{a}, second{b} {}
-		compressed_pair(const A& a, B&& b): first{a}, second{std::move(b)} {}
-		compressed_pair(A&& a, const B& b): first{std::move(a)}, second{b} {}
-		compressed_pair(A&& a, B&& b): first{std::move(a)}, second{std::move(b)} {}
+		CompressedPairImpl(): first{}, second{} {}
+		
+		template <class... Arg2>
+		explicit CompressedPairImpl(ZeroThen, Arg2&&... arg2):
+			first{}, second{std::forward<Arg2>(arg2)...}
+		{
+		}
+		
+		template <class Arg1, class... Arg2>
+		CompressedPairImpl(OneThen, Arg1&& arg1, Arg2&&... arg2):
+			first{std::forward<Arg1>(arg1)}, second{std::forward<Arg2>(arg2)...}
+		{
+		}
+
+		CompressedPairImpl(const CompressedPairImpl& o):
+			first{o.first}, second{o.second}
+		{
+		}
+
+		CompressedPairImpl(CompressedPairImpl&& o) noexcept:
+			first{std::move(o.first)}, second(std::move(o.second))
+		{
+		}
+
+		~CompressedPairImpl()
+		{
+			second.~B();
+			first.~A();
+		}
+
+		CompressedPairImpl& operator=(const CompressedPairImpl& o)
+		{
+			if (this != &o)
+			{
+				first = o.first;
+				second = o.second;
+			}
+			return *this;
+		}
+
+		CompressedPairImpl& operator=(CompressedPairImpl&& o) noexcept
+		{
+			if (this != &o)
+			{
+				first = std::move(o.first);
+				second = std::move(o.second);
+			}
+			return *this;
+		}
 		
 		union
 		{
@@ -24,15 +71,24 @@ namespace ostl::internal
 	};
 
 	template <class A, class B>
-	struct compressed_pair<A, B, false>
+	struct CompressedPairImpl<A, B, false>
 	{
-		compressed_pair(): first{}, second{} {}
-		compressed_pair(const A& a, const B& b): first{a}, second{b} {}
-		compressed_pair(const A& a, B&& b): first{a}, second{std::move(b)} {}
-		compressed_pair(A&& a, const B& b): first{std::move(a)}, second{b} {}
-		compressed_pair(A&& a, B&& b): first{std::move(a)}, second{std::move(b)} {}
+		template <class... Arg2>
+		explicit constexpr CompressedPairImpl(ZeroThen, Arg2&&... arg2):
+			first{}, second{std::forward<Arg2>(arg2)...}
+		{
+		}
+		
+		template <class Arg1, class... Arg2>
+		constexpr CompressedPairImpl(OneThen, Arg1&& arg1, Arg2&&... arg2):
+			first{std::forward<Arg1>(arg1)}, second{std::forward<Arg2>(arg2)...}
+		{
+		}
 		
 		A first;
 		B second;
 	};
+
+	template <class A, class B>
+	using compressed_pair = CompressedPairImpl<A, B>;
 }

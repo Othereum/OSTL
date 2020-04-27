@@ -90,7 +90,7 @@ namespace ostl
 		static constexpr auto npos = size_type(-1);
 		
 		basic_string() noexcept(noexcept(allocator_type{})): basic_string{allocator_type{}} {}
-		explicit basic_string(const allocator_type& alloc) noexcept: r_{{}, alloc} {}
+		explicit basic_string(const allocator_type& alloc) noexcept: r_{internal::ZeroThen{}, alloc} {}
 		basic_string(size_type count, value_type ch, const allocator_type& alloc = allocator_type{});
 		basic_string(const basic_string& other, size_type pos, size_type count = npos, const allocator_type& alloc = allocator_type{});
 	};
