@@ -70,10 +70,10 @@ namespace ostl
 			union { compressed_pair<Al, T> pair; };
 		};
 
-		template <class T, class Dx = std::default_delete<T>, class Al = std::allocator<T>>
+		template <class T, class Dx, class Al>
 		struct SharedObjPtr final : SharedObjBase<T>
 		{
-			explicit SharedObjPtr(T* ptr, Dx dt = {}, Al ax = {}):
+			SharedObjPtr(T* ptr, Dx dt, Al ax):
 				SharedObjBase<T>{},
 				pair{OneThen{}, std::move(ax), OneThen{}, std::move(dt), ptr}
 			{
@@ -114,14 +114,18 @@ namespace ostl
 		constexpr shared_ptr(nullptr_t) noexcept {}
 
 		explicit shared_ptr(T* ptr)
-			:Base{new internal::SharedObjPtr<T>{ptr}}
+			:shared_ptr{ptr, std::default_delete<T>{}}
 		{
 		}
 
 		template <class Deleter, class Alloc = std::allocator<T>>
 		shared_ptr(T* ptr, Deleter deleter, Alloc alloc = {})
-			:Base{new internal::SharedObjPtr<T, Deleter, Alloc>{ptr, std::move(deleter), std::move(alloc)}}
 		{
+			using Al = typename std::allocator_traits<Alloc>::template rebind_alloc<internal::SharedObjPtr<T, Deleter, Alloc>>;
+			using Tr = std::allocator_traits<Al>;
+			Al ax{alloc};
+			this->ptr_ = Tr::allocate(ax, 1);
+			Tr::construct(ax, this->ptr_, ptr, std::move(deleter), std::move(alloc));
 		}
 	};
 }
