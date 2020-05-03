@@ -105,11 +105,17 @@ namespace ostl
 	}
 
 	template <class T>
+	class weak_ptr;
+
+	template <class T>
 	class shared_ptr : internal::BasePtr<T>
 	{
 		using Base = internal::BasePtr<T>;
 		
 	public:
+		using element_type = std::remove_extent_t<T>;
+		using weak_type = weak_ptr<T>;
+		
 		constexpr shared_ptr() noexcept = default;
 		constexpr shared_ptr(nullptr_t) noexcept {}
 
