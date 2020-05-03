@@ -16,9 +16,9 @@ namespace ostl
 			SharedObjBase& operator=(const SharedObjBase&) = delete;
 			SharedObjBase& operator=(SharedObjBase&&) = delete;
 
-			void IncStrong() { ++strong; }
-			void IncWeak() { ++weak; }
-			void DecStrong()
+			void IncStrong() noexcept { ++strong; }
+			void IncWeak() noexcept { ++weak; }
+			void DecStrong() noexcept
 			{
 				if (--strong == 0)
 				{
@@ -26,7 +26,7 @@ namespace ostl
 					if (weak == 0) DeleteSelf();
 				}
 			}
-			void DecWeak() { if (--weak == 0 && strong == 0) DeleteSelf();  }
+			void DecWeak() noexcept { if (--weak == 0 && strong == 0) DeleteSelf();  }
 
 		private:
 			virtual void Destroy() noexcept = 0;
