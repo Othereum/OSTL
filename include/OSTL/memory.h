@@ -9,6 +9,7 @@ namespace ostl
 	{
 		struct SharedObjBase
 		{
+			SharedObjBase() = default;
 			virtual ~SharedObjBase() = default;
 			SharedObjBase(const SharedObjBase&) = delete;
 			SharedObjBase(SharedObjBase&&) = delete;
@@ -40,7 +41,6 @@ namespace ostl
 		{
 			template <class... Args>
 			constexpr explicit SharedObjInline(Al ax, Args&&... args):
-				SharedObjBase<T>{},
 				pair{OneThen{}, std::move(ax), std::forward<Args>(args)...}
 			{
 			}
@@ -69,11 +69,10 @@ namespace ostl
 			union { compressed_pair<Al, T> pair; };
 		};
 
-		template <class T, class Dx, class Al>
+		template <class Ptr, class Dx, class Al>
 		struct SharedObjPtr final : SharedObjBase
 		{
-			SharedObjPtr(T* ptr, Dx dt, Al ax):
-				SharedObjBase<T>{},
+			SharedObjPtr(Ptr ptr, Dx dt, Al ax):
 				pair{OneThen{}, std::move(ax), OneThen{}, std::move(dt), ptr}
 			{
 			}
@@ -94,18 +93,21 @@ namespace ostl
 				Traits::deallocate(ax, this, 1);
 			}
 
-			compressed_pair<Al, compressed_pair<Dx, T*>> pair;
+			compressed_pair<Al, compressed_pair<Dx, Ptr>> pair;
 		};
 
 		template <class T>
 		class BasePtr
 		{
 		protected:
+			using element_type = std::remove_extent_t<T>;
+
 			constexpr BasePtr() noexcept = default;
 			constexpr BasePtr(nullptr_t) noexcept {}
 			
-			explicit constexpr BasePtr(SharedObjBase* ptr) noexcept: ptr_{ptr} {}
-			SharedObjBase* ptr_ = nullptr;
+			explicit constexpr BasePtr(SharedObjBase* obj, element_type* ptr) noexcept: obj_{obj}, ptr_{ptr} {}
+			SharedObjBase* obj_ = nullptr;
+			element_type* ptr_ = nullptr;
 		};
 	}
 
