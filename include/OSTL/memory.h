@@ -7,7 +7,6 @@ namespace ostl
 {
 	namespace internal
 	{
-		template <class T>
 		struct SharedObjBase
 		{
 			virtual ~SharedObjBase() = default;
@@ -37,7 +36,7 @@ namespace ostl
 		};
 
 		template <class T, class Al>
-		struct SharedObjInline final : SharedObjBase<T>
+		struct SharedObjInline final : SharedObjBase
 		{
 			template <class... Args>
 			constexpr explicit SharedObjInline(Al ax, Args&&... args):
@@ -71,7 +70,7 @@ namespace ostl
 		};
 
 		template <class T, class Dx, class Al>
-		struct SharedObjPtr final : SharedObjBase<T>
+		struct SharedObjPtr final : SharedObjBase
 		{
 			SharedObjPtr(T* ptr, Dx dt, Al ax):
 				SharedObjBase<T>{},
@@ -105,8 +104,8 @@ namespace ostl
 			constexpr BasePtr() noexcept = default;
 			constexpr BasePtr(nullptr_t) noexcept {}
 			
-			explicit constexpr BasePtr(SharedObjBase<T>* ptr) noexcept: ptr_{ptr} {}
-			SharedObjBase<T>* ptr_ = nullptr;
+			explicit constexpr BasePtr(SharedObjBase* ptr) noexcept: ptr_{ptr} {}
+			SharedObjBase* ptr_ = nullptr;
 		};
 	}
 
@@ -125,19 +124,26 @@ namespace ostl
 		constexpr shared_ptr() noexcept = default;
 		constexpr shared_ptr(nullptr_t) noexcept {}
 
-		explicit shared_ptr(T* ptr)
-			:shared_ptr{ptr, std::default_delete<T>{}}
+		template <class Y>
+		explicit shared_ptr(Y* ptr)
+			:shared_ptr{ptr, std::default_delete<Y>{}}
 		{
 		}
 
-		template <class Deleter, class Alloc = std::allocator<T>>
-		shared_ptr(T* ptr, Deleter deleter, Alloc alloc = {})
+		template <class Y, class Deleter, class Alloc = std::allocator<Y>>
+		shared_ptr(Y* ptr, Deleter deleter, Alloc alloc = {})
 		{
-			using Al = typename std::allocator_traits<Alloc>::template rebind_alloc<internal::SharedObjPtr<T, Deleter, Alloc>>;
+			using Al = typename std::allocator_traits<Alloc>::template rebind_alloc<internal::SharedObjPtr<Y, Deleter, Alloc>>;
 			using Tr = std::allocator_traits<Al>;
 			Al ax{alloc};
 			this->ptr_ = Tr::allocate(ax, 1);
 			Tr::construct(ax, this->ptr_, ptr, std::move(deleter), std::move(alloc));
+		}
+
+		template <class Deleter, class Alloc = std::allocator<T>>
+		shared_ptr(nullptr_t ptr, Deleter deleter, Alloc alloc = {})
+			:shared_ptr{static_cast<T*>(nullptr), std::move(deleter), std::move(alloc)}
+		{
 		}
 	};
 }
