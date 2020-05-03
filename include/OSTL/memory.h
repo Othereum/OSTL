@@ -62,7 +62,7 @@ namespace ostl
 			void DeleteSelf() noexcept override
 			{
 				using Alloc = typename std::allocator_traits<Al>::template rebind_alloc<SharedObjInline>;
-				Alloc ax = std::move(pair.first);
+				Alloc ax{std::move(pair.first)};
 				std::allocator_traits<Alloc>::destroy(ax, this);
 				std::allocator_traits<Alloc>::deallocate(ax, this, 1);
 			}
@@ -80,16 +80,16 @@ namespace ostl
 			}
 			
 		private:
-			using Alloc = typename std::allocator_traits<Al>::template rebind_alloc<SharedObjPtr>;
-			
 			void Destroy() noexcept override { pair.second.first(pair.second.second); }
 			void DeleteSelf() noexcept override
 			{
-				std::allocator_traits<Alloc>::destroy(pair.first, this);
-				std::allocator_traits<Alloc>::deallocate(pair.first, this, 1);
+				using Alloc = typename std::allocator_traits<Al>::template rebind_alloc<SharedObjPtr>;
+				Alloc ax{std::move(pair.first)};
+				std::allocator_traits<Alloc>::destroy(ax, this);
+				std::allocator_traits<Alloc>::deallocate(ax, this, 1);
 			}
 
-			compressed_pair<Alloc, compressed_pair<Dx, T*>> pair;
+			compressed_pair<Al, compressed_pair<Dx, T*>> pair;
 		};
 
 		template <class T>
@@ -113,14 +113,14 @@ namespace ostl
 		constexpr shared_ptr() noexcept = default;
 		constexpr shared_ptr(nullptr_t) noexcept {}
 
-		explicit shared_ptr(T* ptr):
-			Base{new internal::SharedObjPtr<T>{ptr}}
+		explicit shared_ptr(T* ptr)
+			:Base{new internal::SharedObjPtr<T>{ptr}}
 		{
 		}
 
 		template <class Deleter, class Alloc = std::allocator<T>>
-		shared_ptr(T* ptr, Deleter deleter, Alloc alloc = {}):
-			Base{new internal::SharedObjPtr<T, Deleter, Alloc>{ptr, std::move(deleter), std::move(alloc)}}
+		shared_ptr(T* ptr, Deleter deleter, Alloc alloc = {})
+			:Base{new internal::SharedObjPtr<T, Deleter, Alloc>{ptr, std::move(deleter), std::move(alloc)}}
 		{
 		}
 	};
