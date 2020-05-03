@@ -80,13 +80,19 @@ namespace ostl
 			}
 			
 		private:
-			void Destroy() noexcept override { pair.second.first(pair.second.second); }
+			void Destroy() noexcept override
+			{
+				auto& [deleter, ptr] = pair.second;
+				if (ptr) deleter(ptr);
+			}
+			
 			void DeleteSelf() noexcept override
 			{
 				using Alloc = typename std::allocator_traits<Al>::template rebind_alloc<SharedObjPtr>;
+				using Traits = std::allocator_traits<Alloc>;
 				Alloc ax{std::move(pair.first)};
-				std::allocator_traits<Alloc>::destroy(ax, this);
-				std::allocator_traits<Alloc>::deallocate(ax, this, 1);
+				Traits::destroy(ax, this);
+				Traits::deallocate(ax, this, 1);
 			}
 
 			compressed_pair<Al, compressed_pair<Dx, T*>> pair;
