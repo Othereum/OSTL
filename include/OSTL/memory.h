@@ -120,7 +120,7 @@ namespace ostl
 		using Base = internal::BasePtr<T>;
 		
 	public:
-		using element_type = std::remove_extent_t<T>;
+		using Base::element_type;
 		using weak_type = weak_ptr<T>;
 		
 		constexpr shared_ptr() noexcept = default;
@@ -128,24 +128,39 @@ namespace ostl
 
 		template <class Y>
 		explicit shared_ptr(Y* ptr)
-			:shared_ptr{ptr, std::default_delete<Y>{}}
 		{
+			if constexpr (std::is_array_v<T>)
+			{
+				Construct(ptr, std::default_delete<Y[]>{}, std::allocator<Y>{});
+			}
+			else
+			{
+				Construct(ptr, std::default_delete<Y>{}, std::allocator<Y>{});
+			}
 		}
 
 		template <class Y, class Deleter, class Alloc = std::allocator<Y>>
 		shared_ptr(Y* ptr, Deleter deleter, Alloc alloc = {})
 		{
-			using Al = typename std::allocator_traits<Alloc>::template rebind_alloc<internal::SharedObjPtr<Y, Deleter, Alloc>>;
-			using Tr = std::allocator_traits<Al>;
-			Al ax{alloc};
-			this->ptr_ = Tr::allocate(ax, 1);
-			Tr::construct(ax, this->ptr_, ptr, std::move(deleter), std::move(alloc));
+			Construct(ptr, std::move(deleter), std::move(alloc));
 		}
 
 		template <class Deleter, class Alloc = std::allocator<T>>
 		shared_ptr(nullptr_t ptr, Deleter deleter, Alloc alloc = {})
-			:shared_ptr{static_cast<T*>(nullptr), std::move(deleter), std::move(alloc)}
 		{
+			Construct(ptr, std::move(deleter), std::move(alloc));
+		}
+
+	private:
+		template <class Ptr, class Deleter, class Alloc>
+		void Construct(Ptr ptr, Deleter deleter, Alloc alloc)
+		{
+			using Al = typename std::allocator_traits<Alloc>::template rebind_alloc<internal::SharedObjPtr<Ptr, Deleter, Alloc>>;
+			using Tr = std::allocator_traits<Al>;
+			Al ax{alloc};
+			this->obj_ = Tr::allocate(ax, 1);
+			this->ptr_ = ptr;
+			Tr::construct(ax, this->obj_, ptr, std::move(deleter), std::move(alloc));
 		}
 	};
 }
