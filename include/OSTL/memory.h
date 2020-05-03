@@ -151,6 +151,14 @@ namespace ostl
 			Construct(ptr, std::move(deleter), std::move(alloc));
 		}
 
+		template <class Y>
+		shared_ptr(const shared_ptr<Y>& r, element_type* ptr) noexcept
+		{
+			if (r.obj_) r.obj_->IncStrong();
+			this->obj_ = r.obj_;
+			this->ptr_ = ptr;
+		}
+
 	private:
 		template <class Ptr, class Deleter, class Alloc>
 		void Construct(Ptr ptr, Deleter deleter, Alloc alloc)
